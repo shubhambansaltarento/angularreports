@@ -1,0 +1,162 @@
+<div class="data-table">
+  <div class="data-table__toolbar">
+    <div class="data-table__toolbar-info">
+      @if (title()) {
+        <h2 class="data-table__title">{{ title() }}</h2>
+      }
+      <span class="data-table__count">{{ totalCount() }} records</span>
+    </div>
+
+    <div class="data-table__toolbar-actions">
+      <input
+        class="data-table__search"
+        type="search"
+        placeholder="Search..."
+        [value]="searchInputValue()"
+        (input)="onSearchInput($event)"
+        aria-label="Global search"
+      />
+
+      <div class="data-table__column-menu">
+        <button type="button" (click)="toggleColumnMenu()" aria-haspopup="true">Columns</button>
+        @if (isColumnMenuOpen()) {
+          <div class="data-table__column-menu-panel" role="menu">
+            <app-data-table-column-settings
+              [columns]="columnSettingsItems()"
+              (toggleVisibility)="onToggleColumnVisibility($event)"
+              (moveUp)="onMoveColumnUp($event)"
+              (moveDown)="onMoveColumnDown($event)"
+              (pin)="onPinColumn($event)"
+              (restoreDefaults)="onRestoreDefaultColumns()"
+            />
+          </div>
+        }
+      </div>
+
+      <div class="data-table__export-menu">
+        <button type="button" (click)="toggleExportMenu()" aria-haspopup="true">Export</button>
+        @if (isExportMenuOpen()) {
+          <div class="data-table__export-menu-panel" role="menu">
+            <label class="data-table__export-scope">
+              <span>Scope</span>
+              <select [value]="exportScope()" (change)="onExportScopeChange($event)">
+                <option value="currentPage">Current page</option>
+                <option value="all">All filtered rows</option>
+              </select>
+            </label>
+            <button type="button" (click)="onExport('csv')">CSV</button>
+            <button type="button" (click)="onExport('excel')">Excel</button>
+            <button type="button" (click)="onExport('print')">Print</button>
+            <button type="button" (click)="onExport('pdf')">PDF</button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (exportError(); as exportErrorMessage) {
+    <p class="data-table__export-error" role="alert">{{ exportErrorMessage }}</p>
+  }
+
+  <div class="data-table__scroll-container">
+    <table cdk-table [dataSource]="pagedData()" [trackBy]="trackByFn" class="data-table__table">
+      @if (selectionMode() !== 'none') {
+        <ng-container cdkColumnDef="__select__" sticky>
+          <th cdk-header-cell *cdkHeaderCellDef class="data-table__select-cell">
+            @if (selectionMode() === 'multiple') {
+              <input
+                type="checkbox"
+                [checked]="isAllOnPageSelected()"
+                (change)="toggleSelectAllOnPage()"
+                aria-label="Select all rows on this page"
+              />
+            }
+          </th>
+          <td cdk-cell *cdkCellDef="let row" class="data-table__select-cell">
+            <input
+              type="checkbox"
+              [checked]="isRowSelected(row)"
+              (change)="toggleRowSelection(row)"
+              aria-label="Select row"
+            />
+          </td>
+        </ng-container>
+      }
+
+      @for (column of visibleColumns(); track column.key) {
+        <ng-container
+          [cdkColumnDef]="column.key"
+          [sticky]="column.pinned === 'start'"
+          [stickyEnd]="column.pinned === 'end'"
+        >
+          <th cdk-header-cell *cdkHeaderCellDef [style.width]="column.width ?? null">
+            @if (column.sortable) {
+              <button type="button" class="data-table__sort-button" (click)="onSortColumn(column.key)">
+                {{ column.header }}
+                <span class="data-table__sort-indicator">{{ sortIndicator(column.key) }}</span>
+              </button>
+            } @else {
+              {{ column.header }}
+            }
+            <span
+              class="data-table__resize-handle"
+              (pointerdown)="onResizeStart($event, column.key)"
+              aria-hidden="true"
+            ></span>
+          </th>
+          <td cdk-cell *cdkCellDef="let row" [style.text-align]="column.align ?? 'start'">
+            @if (cellTemplateFor(column.key); as template) {
+              <ng-container
+                [ngTemplateOutlet]="template"
+                [ngTemplateOutletContext]="{ $implicit: row, column: column }"
+              ></ng-container>
+            } @else {
+              {{ row[column.key] }}
+            }
+          </td>
+        </ng-container>
+      }
+
+      <tr cdk-header-row *cdkHeaderRowDef="displayedColumnKeys(); sticky: true"></tr>
+      <tr cdk-row *cdkRowDef="let row; columns: displayedColumnKeys()"></tr>
+    </table>
+
+    @if (isInitialLoading()) {
+      <div class="data-table__skeleton" aria-hidden="true">
+        @for (index of skeletonRowIndexes(); track index) {
+          <div class="data-table__skeleton-row"></div>
+        }
+      </div>
+    }
+
+    @if (isOverlayLoading()) {
+      <div class="data-table__loading-overlay" role="status" aria-live="polite">Loading…</div>
+    }
+
+    @if (isEmpty()) {
+      <div class="data-table__empty-state" role="status">
+        <p>{{ emptyStateMessage() }}</p>
+        @if (searchTerm()) {
+          <button type="button" (click)="clearSearch()">Clear search</button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="data-table__footer">
+    <label class="data-table__page-size">
+      Rows per page:
+      <select [value]="pageSize()" (change)="onPageSizeChange($event)">
+        @for (size of pageSizeOptions(); track size) {
+          <option [value]="size">{{ size }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="data-table__pagination">
+      <button type="button" [disabled]="currentPage() === 1" (click)="goToPreviousPage()">Previous</button>
+      <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
+      <button type="button" [disabled]="currentPage() === totalPages()" (click)="goToNextPage()">Next</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,6 @@
+// TODO: add styles using design tokens only (no hardcoded values) once the Shared
+// styling/theming layer exists — layout/visuals are owned by the shared DataTableComponent.
+
+:host {
+  display: block;
+}

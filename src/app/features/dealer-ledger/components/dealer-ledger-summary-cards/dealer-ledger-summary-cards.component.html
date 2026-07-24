@@ -1,0 +1,29 @@
+<dl
+  class="dealer-ledger-summary-cards"
+  role="group"
+  aria-label="Dealer Ledger summary"
+  [attr.aria-busy]="loading() && !summary() ? 'true' : null"
+>
+  @if (loading() && !summary()) {
+    @for (index of skeletonIndexes; track index) {
+      <div class="dealer-ledger-summary-cards__card dealer-ledger-summary-cards__card--skeleton" aria-hidden="true">
+        <div class="dealer-ledger-summary-cards__skeleton-line"></div>
+        <div class="dealer-ledger-summary-cards__skeleton-line dealer-ledger-summary-cards__skeleton-line--value"></div>
+      </div>
+    }
+    <span class="dealer-ledger-summary-cards__visually-hidden">Loading summary…</span>
+  } @else {
+    @for (card of cards(); track card.key) {
+      <div class="dealer-ledger-summary-cards__card" [title]="card.tooltip">
+        <dt class="dealer-ledger-summary-cards__label">{{ card.label }}</dt>
+        <dd class="dealer-ledger-summary-cards__value">
+          @if (card.format === 'currency') {
+            {{ card.value | currency }}
+          } @else {
+            {{ card.value | number }}
+          }
+        </dd>
+      </div>
+    }
+  }
+</dl>

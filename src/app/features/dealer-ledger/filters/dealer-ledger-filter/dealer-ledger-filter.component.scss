@@ -1,0 +1,53 @@
+// TODO: replace literal values with design tokens (CSS custom properties) once the
+// Shared styling/theming layer exists (Engineering Standards §6) — no token system exists
+// in this repo yet, so plain values are used for now.
+
+.dealer-ledger-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dealer-ledger-filter__row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dealer-ledger-filter__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dealer-ledger-filter__error {
+  color: #b00020;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.dealer-ledger-filter__checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+}
+
+.dealer-ledger-filter__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.dealer-ledger-filter__checkbox-count {
+  font-weight: 400;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.dealer-ledger-filter__actions {
+  display: flex;
+  gap: 0.5rem;
+}

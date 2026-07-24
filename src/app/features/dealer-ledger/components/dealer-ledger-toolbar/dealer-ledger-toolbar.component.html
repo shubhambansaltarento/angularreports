@@ -1,0 +1,16 @@
+<header class="dealer-ledger-toolbar">
+  <h1 class="dealer-ledger-toolbar__title">{{ title() }}</h1>
+  <span
+    class="dealer-ledger-toolbar__count"
+    role="status"
+    aria-live="polite"
+    title="Number of Dealer Ledger entries matching the current filters"
+  >
+    @if (loading()) {
+      <span class="dealer-ledger-toolbar__skeleton" aria-hidden="true"></span>
+      <span class="dealer-ledger-toolbar__visually-hidden">Loading entries…</span>
+    } @else {
+      {{ totalCount() }} entries
+    }
+  </span>
+</header>

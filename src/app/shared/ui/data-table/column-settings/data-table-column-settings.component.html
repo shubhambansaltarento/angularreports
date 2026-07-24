@@ -1,0 +1,55 @@
+<div class="data-table-column-settings">
+  <label class="data-table-column-settings__search">
+    <input
+      type="text"
+      placeholder="Search columns…"
+      [value]="searchTerm()"
+      (input)="onSearchInput($event)"
+      aria-label="Search columns"
+    />
+  </label>
+
+  <ul class="data-table-column-settings__list">
+    @for (column of filteredColumns(); track column.key) {
+      <li class="data-table-column-settings__item">
+        <label class="data-table-column-settings__visibility">
+          <input type="checkbox" [checked]="!column.hidden" (change)="toggleVisibility.emit(column.key)" />
+          <span>{{ column.header }}</span>
+        </label>
+
+        <div class="data-table-column-settings__actions">
+          <button
+            type="button"
+            [disabled]="isFirst(column.key)"
+            (click)="moveUp.emit(column.key)"
+            aria-label="Move column up"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            [disabled]="isLast(column.key)"
+            (click)="moveDown.emit(column.key)"
+            aria-label="Move column down"
+          >
+            ↓
+          </button>
+          <select
+            class="data-table-column-settings__pin"
+            [value]="column.pinned ?? ''"
+            (change)="onPinChange(column.key, $event)"
+            aria-label="Pin column"
+          >
+            <option value="">Unpinned</option>
+            <option value="start">Pin left</option>
+            <option value="end">Pin right</option>
+          </select>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <button type="button" class="data-table-column-settings__restore" (click)="restoreDefaults.emit()">
+    Restore Default
+  </button>
+</div>

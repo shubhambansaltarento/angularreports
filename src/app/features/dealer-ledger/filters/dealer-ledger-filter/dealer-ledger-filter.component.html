@@ -1,0 +1,71 @@
+<form class="dealer-ledger-filter" [formGroup]="form" (ngSubmit)="onSearch()">
+  <div class="dealer-ledger-filter__row">
+    <div class="dealer-ledger-filter__field">
+      <label for="dealer-ledger-filter-date-from">Date From</label>
+      <input
+        id="dealer-ledger-filter-date-from"
+        type="date"
+        formControlName="dateFrom"
+        title="Only include entries with an invoice date on or after this date"
+      />
+    </div>
+
+    <div class="dealer-ledger-filter__field">
+      <label for="dealer-ledger-filter-date-to">Date To</label>
+      <input
+        id="dealer-ledger-filter-date-to"
+        type="date"
+        formControlName="dateTo"
+        title="Only include entries with an invoice date on or before this date"
+      />
+    </div>
+  </div>
+
+  @if (isDateRangeInvalid()) {
+    <p class="dealer-ledger-filter__error" role="alert">"Date From" must not be after "Date To".</p>
+  }
+
+  <div class="dealer-ledger-filter__field">
+    <label for="dealer-ledger-filter-dealer-search">Dealer Search</label>
+    <input
+      id="dealer-ledger-filter-dealer-search"
+      type="text"
+      formControlName="dealerSearch"
+      placeholder="Search by dealer code or name"
+      title="Matches dealer code, dealer name, invoice number, branch, state, city, transaction type, or status"
+    />
+    <!-- TODO: replace with the platform's Autocomplete component once available; no API integration yet -->
+  </div>
+
+  <fieldset class="dealer-ledger-filter__checkbox-group">
+    <legend>
+      {{ checkboxGroupLabel() }}
+      @if (selectedCheckboxCount() > 0) {
+        <span class="dealer-ledger-filter__checkbox-count">({{ selectedCheckboxCount() }} selected)</span>
+      }
+    </legend>
+    @for (option of checkboxOptions(); track option.key) {
+      <label class="dealer-ledger-filter__checkbox">
+        <input
+          type="checkbox"
+          [checked]="isChecked(option.key)"
+          (change)="onCheckboxToggle(option.key)"
+        />
+        {{ option.label }}
+      </label>
+    }
+  </fieldset>
+
+  <div class="dealer-ledger-filter__actions">
+    <button type="submit">Search</button>
+    <button
+      type="button"
+      [disabled]="!hasActiveFilters()"
+      title="Clear all filters and reload the full result set"
+      (click)="onReset()"
+    >
+      Reset
+    </button>
+    <button type="button" (click)="onExport()">Export</button>
+  </div>
+</form>

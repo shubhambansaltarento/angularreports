@@ -1,0 +1,23 @@
+<app-data-table
+  tableId="dealer-ledger"
+  title="Dealer Ledger Entries"
+  trackByKey="id"
+  emptyStateMessage="No ledger entries match the current filters."
+  [columns]="columns"
+  [data]="rows()"
+  [loading]="loading()"
+  [initialPageSize]="initialPageSize"
+>
+  <ng-template dataTableCell="invoiceDate" let-row>
+    <span [title]="$any(row).invoiceDate">{{ $any(row).invoiceDate | date }}</span>
+  </ng-template>
+  <ng-template dataTableCell="debit" let-row>
+    <span title="Amount debited in this transaction">{{ $any(row).debit | currency }}</span>
+  </ng-template>
+  <ng-template dataTableCell="credit" let-row>
+    <span title="Amount credited in this transaction">{{ $any(row).credit | currency }}</span>
+  </ng-template>
+  <ng-template dataTableCell="balance" let-row>
+    <span title="Running balance for this dealer as of this transaction">{{ $any(row).balance | currency }}</span>
+  </ng-template>
+</app-data-table>

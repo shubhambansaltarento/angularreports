@@ -1,0 +1,239 @@
+// TODO: replace literal values with design tokens (CSS custom properties) once the
+// Shared styling/theming layer exists (Engineering Standards §6) — no token system exists
+// in this repo yet, so plain values are used for now.
+
+:host {
+  display: block;
+}
+
+.data-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0; // required for the scroll container to actually shrink/scroll in a flex/grid parent
+}
+
+.data-table__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.data-table__toolbar-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.data-table__title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.data-table__count {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.data-table__toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.data-table__column-menu {
+  position: relative;
+}
+
+.data-table__column-menu-panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 10rem;
+}
+
+.data-table__column-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+}
+
+.data-table__export-menu {
+  position: relative;
+}
+
+.data-table__export-menu-panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 10rem;
+}
+
+.data-table__export-scope {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.8rem;
+}
+
+.data-table__export-error {
+  color: #b00020;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+// Responsive strategy: rather than reflowing columns (a fuller "pop-in" layout is a
+// documented future enhancement), the table scrolls horizontally within a bounded
+// container on narrow viewports/many columns — this is also what makes the sticky
+// header meaningful (an inner scrolling region, not the whole page).
+.data-table__scroll-container {
+  position: relative;
+  overflow: auto;
+  max-height: 32rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.data-table__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table__table th,
+.data-table__table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.data-table__table th {
+  position: relative; // anchors the resize handle
+  background: #fafafa;
+  font-weight: 600;
+}
+
+// Angular CDK applies this class (plus inline position/offset styles) to pinned ("sticky"
+// / "stickyEnd") header and body cells — a shadow is enough to visually separate a pinned
+// column from the ones scrolling underneath it.
+.data-table__table .cdk-table-sticky {
+  background: #fff;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
+}
+
+.data-table__table th.cdk-table-sticky {
+  background: #fafafa;
+}
+
+.data-table__resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.data-table__select-cell {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.data-table__sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.data-table__sort-indicator {
+  font-size: 0.7rem;
+}
+
+.data-table__skeleton {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.data-table__skeleton-row {
+  height: 1.25rem;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%);
+  background-size: 400% 100%;
+  animation: data-table-skeleton-shimmer 1.4s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-table__skeleton-row {
+    animation: none;
+  }
+}
+
+@keyframes data-table-skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+.data-table__loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.data-table__empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #666;
+}
+
+.data-table__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.data-table__pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

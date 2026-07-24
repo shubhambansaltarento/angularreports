@@ -1,0 +1,22 @@
+// TODO: add styles for the Dealer Ledger list page using design tokens only (no hardcoded values)
+
+:host {
+  display: block;
+}
+
+.dealer-ledger-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dealer-ledger-list__error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #b00020;
+}
+
+.dealer-ledger-list__error p {
+  margin: 0;
+}

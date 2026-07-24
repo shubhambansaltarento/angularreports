@@ -1,0 +1,57 @@
+// TODO: replace literal values with design tokens once the Shared styling/theming layer exists.
+
+:host {
+  display: block;
+  min-width: 16rem;
+}
+
+.data-table-column-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.data-table-column-settings__search input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 0.5rem;
+}
+
+.data-table-column-settings__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.data-table-column-settings__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.data-table-column-settings__visibility {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.data-table-column-settings__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.data-table-column-settings__pin {
+  font-size: 0.75rem;
+}
+
+.data-table-column-settings__restore {
+  align-self: flex-start;
+}
