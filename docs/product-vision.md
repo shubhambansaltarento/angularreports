@@ -184,3 +184,5 @@ Pending your approval of this vision, candidate next specifications (each to fol
 5. **Theming & White-Label Spec** — design token architecture, configuration schema.
 
 Let me know which to specify next, or if this vision needs revisions first.
+
+

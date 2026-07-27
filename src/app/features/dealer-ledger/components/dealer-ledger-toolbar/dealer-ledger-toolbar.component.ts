@@ -23,3 +23,4 @@ export class DealerLedgerToolbarComponent {
   readonly totalCount = input(0);
   readonly loading = input(false);
 }
+
