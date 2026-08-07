@@ -1,0 +1,35 @@
+<div class="goods-acknowledgement-list">
+  <header class="goods-acknowledgement-list__header">
+    <h1>Goods Acknowledgement</h1>
+  </header>
+
+  <app-report-search-bar [initialValue]="initialValue()" />
+
+  <fieldset class="goods-acknowledgement-list__scope">
+    <legend>Scope</legend>
+    <label class="goods-acknowledgement-list__checkbox">
+      <input type="checkbox" [checked]="vehicleSelected()" (change)="toggleVehicle()" />
+      Vehicle
+    </label>
+    <label class="goods-acknowledgement-list__checkbox">
+      <input type="checkbox" [checked]="sparesSelected()" (change)="toggleSpares()" />
+      Spares
+    </label>
+  </fieldset>
+
+  <div class="goods-acknowledgement-list__actions">
+    <button type="button" (click)="onDisplay()">Display</button>
+    <button type="button" (click)="onUpdate()">Update</button>
+    <button type="button" (click)="onClear()">Clear</button>
+  </div>
+
+  <app-data-table
+    tableId="goods-acknowledgement"
+    title="Goods Acknowledgement"
+    trackByKey="id"
+    selectionMode="multiple"
+    emptyStateMessage="No data source is wired up for Goods Acknowledgement yet — columns are shown pending confirmed source data."
+    [columns]="columns"
+    [data]="rows"
+  />
+</div>

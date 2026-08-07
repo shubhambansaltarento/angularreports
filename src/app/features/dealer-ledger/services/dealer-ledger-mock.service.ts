@@ -51,27 +51,35 @@ export class DealerLedgerMockService implements DealerLedgerRepository {
     filters: DealerLedgerFilters,
     search?: string,
   ): DealerLedgerRow[] {
+    // Note: withOeDetails/withSpDetails/withAcDetails/withEvDetails/withAcwshDetails scope
+    // which *supplementary detail sets* a real backend would include in the response, not
+    // which rows are returned — this mock has no such detail sets to include/exclude, so
+    // they are accepted but do not affect row filtering here.
     return rows.filter((row) => {
       if (filters.dealerCode && row.dealerCode !== filters.dealerCode) return false;
-      if (filters.branch && row.branch !== filters.branch) return false;
-      if (filters.state && row.state !== filters.state) return false;
-      if (filters.city && row.city !== filters.city) return false;
-      if (filters.status && row.status !== filters.status) return false;
-      if (filters.transactionType && row.transactionType !== filters.transactionType) return false;
-      if (filters.dateFrom && row.invoiceDate < filters.dateFrom) return false;
-      if (filters.dateTo && row.invoiceDate > filters.dateTo) return false;
+      if (filters.dateFrom && row.docDate < filters.dateFrom) return false;
+      if (filters.dateTo && row.docDate > filters.dateTo) return false;
+
+      if (filters.dealerDescription) {
+        const term = filters.dealerDescription.trim().toLowerCase();
+        if (term && !row.dealerName.toLowerCase().includes(term)) return false;
+      }
+
+      if (filters.companyCode) {
+        const term = filters.companyCode.trim().toLowerCase();
+        if (term && !row.cca.toLowerCase().includes(term)) return false;
+      }
 
       const searchTerm = search?.trim().toLowerCase();
       if (searchTerm) {
         const haystack = [
           row.dealerCode,
           row.dealerName,
-          row.invoiceNumber,
-          row.branch,
-          row.state,
-          row.city,
-          row.transactionType,
-          row.status,
+          row.dealerAddress,
+          row.docReferenceNo,
+          row.docType,
+          row.assignment,
+          row.cca,
         ]
           .join(' ')
           .toLowerCase();

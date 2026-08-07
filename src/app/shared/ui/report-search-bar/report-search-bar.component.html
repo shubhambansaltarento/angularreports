@@ -1,0 +1,35 @@
+<div class="report-search-bar" [formGroup]="form">
+  <div class="report-search-bar__field">
+    <label for="report-search-bar-dealer-code">Dealer Code</label>
+    <input id="report-search-bar-dealer-code" type="text" formControlName="dealerCode" placeholder="Dealer code" />
+  </div>
+
+  <div class="report-search-bar__field">
+    <label for="report-search-bar-dealer-description">Dealer Description</label>
+    <input
+      id="report-search-bar-dealer-description"
+      type="text"
+      formControlName="dealerDescription"
+      placeholder="Dealer description"
+    />
+  </div>
+
+  <div class="report-search-bar__field">
+    <label for="report-search-bar-company-code">Company Code</label>
+    <input id="report-search-bar-company-code" type="text" formControlName="companyCode" placeholder="Company code" />
+  </div>
+
+  <div class="report-search-bar__field">
+    <label for="report-search-bar-date-from">Date From</label>
+    <input id="report-search-bar-date-from" type="date" formControlName="dateFrom" />
+  </div>
+
+  <div class="report-search-bar__field">
+    <label for="report-search-bar-date-to">Date To</label>
+    <input id="report-search-bar-date-to" type="date" formControlName="dateTo" />
+  </div>
+
+  @if (isDateRangeInvalid()) {
+    <p class="report-search-bar__error" role="alert">"Date From" must not be after "Date To".</p>
+  }
+</div>

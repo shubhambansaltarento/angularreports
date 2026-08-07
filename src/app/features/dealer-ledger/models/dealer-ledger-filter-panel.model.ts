@@ -1,3 +1,5 @@
+import { CommonReportSearchFilters } from '../../../shared/models/report-search-filters.model';
+
 export type DealerLedgerFilterCheckboxMode = 'single' | 'multi';
 
 export interface DealerLedgerFilterCheckboxOption {
@@ -6,17 +8,12 @@ export interface DealerLedgerFilterCheckboxOption {
 }
 
 /**
- * The Dealer Ledger Filter Panel's own form-value shape.
- *
- * Deliberately decoupled from `DealerLedgerFilters`/`DealerLedgerRequest`: this component
- * is a generic, configuration-driven filter shell (its checkbox options/mode are supplied
- * via input, not hardcoded to a specific domain field). Mapping this value onto the
- * domain's `DealerLedgerFilters`/`DealerLedgerRequest` shape is the consuming page's
- * responsibility once the API is wired up — this component has no API integration itself.
+ * The Dealer Ledger Filter Panel's own form-value shape: the platform-common search
+ * fields (rendered via the shared `ReportSearchBarComponent`) plus this report's own
+ * "include details" checkbox-group selection (OE/SP/AC/EV/ACWSH keys). Mapping this
+ * value onto the domain `DealerLedgerFilters` shape is the consuming page's
+ * responsibility (see `DealerLedgerListComponent.toFilters`).
  */
-export interface DealerLedgerFilterValue {
-  dateFrom: string | null;
-  dateTo: string | null;
-  dealerSearch: string | null;
+export interface DealerLedgerFilterValue extends CommonReportSearchFilters {
   checkboxSelection: string[];
 }

@@ -8,24 +8,6 @@
   gap: 0.75rem;
 }
 
-.dealer-ledger-filter__row {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.dealer-ledger-filter__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.dealer-ledger-filter__error {
-  color: #b00020;
-  margin: 0;
-  font-size: 0.875rem;
-}
-
 .dealer-ledger-filter__checkbox-group {
   display: flex;
   flex-wrap: wrap;

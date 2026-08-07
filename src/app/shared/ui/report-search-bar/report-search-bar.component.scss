@@ -1,0 +1,22 @@
+// TODO: replace literal values with design tokens (CSS custom properties) once the
+// Shared styling/theming layer exists (Engineering Standards §6) — no token system exists
+// in this repo yet, so plain values are used for now, matching the rest of the codebase.
+
+.report-search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.report-search-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.report-search-bar__error {
+  flex-basis: 100%;
+  color: #b00020;
+  margin: 0;
+  font-size: 0.875rem;
+}

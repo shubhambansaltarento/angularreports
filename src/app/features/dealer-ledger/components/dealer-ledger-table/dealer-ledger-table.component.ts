@@ -8,17 +8,21 @@ import { DealerLedgerRow } from '../../models/dealer-ledger-row.model';
 
 const DEALER_LEDGER_TABLE_COLUMNS: TableColumn<DealerLedgerRow>[] = [
   { key: 'dealerCode', header: 'Dealer Code', sortable: true },
+  { key: 'docType', header: 'Doc. Type', sortable: true },
+  { key: 'docReferenceNo', header: 'Doc. Reference No.', sortable: true },
+  { key: 'docDate', header: 'Doc. Date', sortable: true },
+  { key: 'assignment', header: 'Assignment', sortable: true },
+  { key: 'cca', header: 'CCA', sortable: true },
+  { key: 'textDec', header: 'Text Dec.', sortable: true },
+  { key: 'narrationVehDescription', header: 'Narration Veh. Description', sortable: true },
+  { key: 'debitAmount', header: 'Debit Amount', sortable: true, align: 'end' },
+  { key: 'creditAmount', header: 'Credit Amount', sortable: true, align: 'end' },
   { key: 'dealerName', header: 'Dealer Name', sortable: true },
-  { key: 'invoiceNumber', header: 'Invoice Number', sortable: true },
-  { key: 'invoiceDate', header: 'Invoice Date', sortable: true },
-  { key: 'transactionType', header: 'Transaction Type', sortable: true },
-  { key: 'debit', header: 'Debit', sortable: true, align: 'end' },
-  { key: 'credit', header: 'Credit', sortable: true, align: 'end' },
-  { key: 'balance', header: 'Balance', sortable: true, align: 'end' },
-  { key: 'branch', header: 'Branch', sortable: true },
-  { key: 'state', header: 'State', sortable: true },
-  { key: 'city', header: 'City', sortable: true },
-  { key: 'status', header: 'Status', sortable: true },
+  { key: 'dealerAddress', header: 'Dealer Address', sortable: true },
+  { key: 'currency', header: 'Currency', sortable: true },
+  { key: 'text', header: 'Text', sortable: true },
+  { key: 'qnt', header: 'QNT.', sortable: true, align: 'end' },
+  { key: 'amt', header: 'Amt', sortable: true, align: 'end' },
 ];
 
 /**

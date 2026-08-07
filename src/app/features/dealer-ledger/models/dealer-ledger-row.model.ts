@@ -1,18 +1,11 @@
-export type DealerLedgerTransactionType =
-  | 'Invoice'
-  | 'Payment'
-  | 'Credit Note'
-  | 'Debit Note'
-  | 'Adjustment';
-
-export type DealerLedgerStatus = 'Posted' | 'Pending' | 'Reconciled' | 'Disputed';
+export type DealerLedgerDocType = 'Invoice' | 'Payment' | 'Credit Note' | 'Debit Note' | 'Adjustment';
 
 /**
- * Table-row view model for a single Dealer Ledger entry.
- *
- * Confirmed field set: Dealer Code, Dealer Name, Invoice Number, Invoice Date, Transaction
- * Type, Debit, Credit, Balance, Branch, State, City, Status. `id` is a synthetic row
- * identifier (not a business field) used for table trackBy/selection.
+ * Table-row view model for a single Dealer Ledger entry, per the confirmed column set:
+ * Dealer Code, Doc. Type, Doc. Reference No., Doc. Date, Assignment, CCA, Text Dec.,
+ * Narration/Veh. Description, Debit Amount, Credit Amount, Dealer Name, Dealer Address,
+ * Currency, Text, QNT., Amt. `id` is a synthetic row identifier (not a business field)
+ * used for table trackBy/selection.
  *
  * Extends `Record<string, unknown>` to satisfy the generic, reusable Data Table's `T`
  * constraint (see `shared/ui/data-table`) — required for this row shape to be usable with
@@ -22,14 +15,18 @@ export interface DealerLedgerRow extends Record<string, unknown> {
   id: string;
   dealerCode: string;
   dealerName: string;
-  invoiceNumber: string;
-  invoiceDate: string; // ISO 8601 date
-  transactionType: DealerLedgerTransactionType;
-  debit: number;
-  credit: number;
-  balance: number;
-  branch: string;
-  state: string;
-  city: string;
-  status: DealerLedgerStatus;
+  dealerAddress: string;
+  docType: DealerLedgerDocType;
+  docReferenceNo: string;
+  docDate: string; // ISO 8601 date
+  assignment: string;
+  cca: string;
+  textDec: string;
+  narrationVehDescription: string;
+  debitAmount: number;
+  creditAmount: number;
+  currency: string;
+  text: string;
+  qnt: number;
+  amt: number;
 }

@@ -5,7 +5,6 @@ import { DealerLedgerToolbarComponent } from '../../components/dealer-ledger-too
 import { DealerLedgerFilterComponent } from '../../filters/dealer-ledger-filter/dealer-ledger-filter.component';
 import { DealerLedgerFilterValue } from '../../models/dealer-ledger-filter-panel.model';
 import { DealerLedgerFilters } from '../../models/dealer-ledger-filters.model';
-import { DealerLedgerTransactionType } from '../../models/dealer-ledger-row.model';
 import { DealerLedgerStore } from '../../store/dealer-ledger.store';
 
 /**
@@ -39,8 +38,9 @@ export class DealerLedgerListComponent {
     this.store.load();
   }
 
+  /** All search parameters are now structured filter fields (Dealer Code/Description/Company Code/Date Range/checkbox group) — no separate free-text search term. */
   protected onSearch(value: DealerLedgerFilterValue): void {
-    this.store.search(this.toFilters(value), value.dealerSearch ?? '');
+    this.store.search(this.toFilters(value));
   }
 
   protected onReset(): void {
@@ -52,16 +52,20 @@ export class DealerLedgerListComponent {
     this.store.refresh();
   }
 
-  /**
-   * Maps the Filter Panel's generic form value onto the domain filter shape. The panel's
-   * checkbox group is configured in `single` mode here (see the list template) since
-   * `DealerLedgerFilters.transactionType` is a single value, not a multi-select set.
-   */
+  /** Maps the Filter Panel's common-plus-checkbox-group form value onto the domain filter shape. */
   private toFilters(value: DealerLedgerFilterValue): DealerLedgerFilters {
+    const selected = new Set(value.checkboxSelection);
     return {
+      dealerCode: value.dealerCode ?? undefined,
+      dealerDescription: value.dealerDescription ?? undefined,
+      companyCode: value.companyCode ?? undefined,
       dateFrom: value.dateFrom ?? undefined,
       dateTo: value.dateTo ?? undefined,
-      transactionType: (value.checkboxSelection[0] as DealerLedgerTransactionType | undefined) ?? undefined,
+      withOeDetails: selected.has('oe'),
+      withSpDetails: selected.has('sp'),
+      withAcDetails: selected.has('ac'),
+      withEvDetails: selected.has('ev'),
+      withAcwshDetails: selected.has('acwsh'),
     };
   }
 }

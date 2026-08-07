@@ -1,0 +1,27 @@
+// TODO: replace literal values with design tokens (CSS custom properties) once the
+// Shared styling/theming layer exists (Engineering Standards §6).
+
+:host {
+  display: block;
+}
+
+.report-search-only-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.report-search-only-page__header p {
+  margin: 0.25rem 0 0;
+  color: #666;
+}
+
+.report-search-only-page__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.report-search-only-page__placeholder {
+  color: #666;
+  font-style: italic;
+}

@@ -1,0 +1,20 @@
+<div class="reports-home">
+  <header class="reports-home__header">
+    <h1>Reports</h1>
+    <p>Select a report to open it.</p>
+  </header>
+
+  <ul class="reports-home__grid">
+    @for (report of reports; track report.id) {
+      <li class="reports-home__card">
+        <a [routerLink]="['/', report.route]" class="reports-home__card-link">
+          <h2>{{ report.title }}</h2>
+          <p>{{ report.description }}</p>
+          @if (!report.hasTable) {
+            <span class="reports-home__badge">Search parameters only</span>
+          }
+        </a>
+      </li>
+    }
+  </ul>
+</div>

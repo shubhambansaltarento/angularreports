@@ -1,44 +1,34 @@
-import { DealerLedgerRow, DealerLedgerStatus, DealerLedgerTransactionType } from '../models/dealer-ledger-row.model';
+import { DealerLedgerDocType, DealerLedgerRow } from '../models/dealer-ledger-row.model';
 import { DealerLedgerSummary } from '../models/dealer-ledger-summary.model';
 
 interface DealerMaster {
   dealerCode: string;
   dealerName: string;
-  branch: string;
-  state: string;
-  city: string;
+  dealerAddress: string;
+  currency: string;
 }
 
 /**
- * Fixed dealer master data — code/name/branch/state/city stay constant per dealer.
- * Only transaction-specific fields (invoice number/date/type/amounts/status) are
- * randomized per generated row, so the mock data reads like a real dealer network
- * rather than 50 unrelated one-off dealers.
+ * Fixed dealer master data — code/name/address/currency stay constant per dealer. Only
+ * transaction-specific fields are randomized per generated row, so the mock data reads
+ * like a real dealer network rather than unrelated one-off dealers.
  */
 const DEALER_MASTER_POOL: readonly DealerMaster[] = [
-  { dealerCode: 'DLR-001', dealerName: 'Northgate Motors', branch: 'West Branch', state: 'Maharashtra', city: 'Mumbai' },
-  { dealerCode: 'DLR-002', dealerName: 'Southbay Auto Group', branch: 'South Branch', state: 'Karnataka', city: 'Bengaluru' },
-  { dealerCode: 'DLR-003', dealerName: 'Lakeside Dealership', branch: 'North Branch', state: 'Delhi', city: 'New Delhi' },
-  { dealerCode: 'DLR-004', dealerName: 'Highway Auto Hub', branch: 'South Branch', state: 'Tamil Nadu', city: 'Chennai' },
-  { dealerCode: 'DLR-005', dealerName: 'Metro Motors', branch: 'West Branch', state: 'Gujarat', city: 'Ahmedabad' },
-  { dealerCode: 'DLR-006', dealerName: 'Prime Auto Dealers', branch: 'South Branch', state: 'Telangana', city: 'Hyderabad' },
-  { dealerCode: 'DLR-007', dealerName: 'Sunrise Motors', branch: 'East Branch', state: 'West Bengal', city: 'Kolkata' },
-  { dealerCode: 'DLR-008', dealerName: 'Capital Vehicles', branch: 'North Branch', state: 'Rajasthan', city: 'Jaipur' },
-  { dealerCode: 'DLR-009', dealerName: 'Horizon Auto', branch: 'North Branch', state: 'Uttar Pradesh', city: 'Lucknow' },
-  { dealerCode: 'DLR-010', dealerName: 'Elite Motors', branch: 'South Branch', state: 'Kerala', city: 'Kochi' },
-  { dealerCode: 'DLR-011', dealerName: 'Coastal Motors', branch: 'West Branch', state: 'Maharashtra', city: 'Pune' },
-  { dealerCode: 'DLR-012', dealerName: 'Summit Auto Group', branch: 'South Branch', state: 'Karnataka', city: 'Mysuru' },
+  { dealerCode: 'DLR-001', dealerName: 'Northgate Motors', dealerAddress: 'West Branch, Mumbai, Maharashtra', currency: 'INR' },
+  { dealerCode: 'DLR-002', dealerName: 'Southbay Auto Group', dealerAddress: 'South Branch, Bengaluru, Karnataka', currency: 'INR' },
+  { dealerCode: 'DLR-003', dealerName: 'Lakeside Dealership', dealerAddress: 'North Branch, New Delhi, Delhi', currency: 'INR' },
+  { dealerCode: 'DLR-004', dealerName: 'Highway Auto Hub', dealerAddress: 'South Branch, Chennai, Tamil Nadu', currency: 'INR' },
+  { dealerCode: 'DLR-005', dealerName: 'Metro Motors', dealerAddress: 'West Branch, Ahmedabad, Gujarat', currency: 'INR' },
+  { dealerCode: 'DLR-006', dealerName: 'Prime Auto Dealers', dealerAddress: 'South Branch, Hyderabad, Telangana', currency: 'INR' },
+  { dealerCode: 'DLR-007', dealerName: 'Sunrise Motors', dealerAddress: 'East Branch, Kolkata, West Bengal', currency: 'INR' },
+  { dealerCode: 'DLR-008', dealerName: 'Capital Vehicles', dealerAddress: 'North Branch, Jaipur, Rajasthan', currency: 'INR' },
+  { dealerCode: 'DLR-009', dealerName: 'Horizon Auto', dealerAddress: 'North Branch, Lucknow, Uttar Pradesh', currency: 'INR' },
+  { dealerCode: 'DLR-010', dealerName: 'Elite Motors', dealerAddress: 'South Branch, Kochi, Kerala', currency: 'INR' },
+  { dealerCode: 'DLR-011', dealerName: 'Coastal Motors', dealerAddress: 'West Branch, Pune, Maharashtra', currency: 'INR' },
+  { dealerCode: 'DLR-012', dealerName: 'Summit Auto Group', dealerAddress: 'South Branch, Mysuru, Karnataka', currency: 'INR' },
 ];
 
-const TRANSACTION_TYPES: readonly DealerLedgerTransactionType[] = [
-  'Invoice',
-  'Payment',
-  'Credit Note',
-  'Debit Note',
-  'Adjustment',
-];
-
-const STATUSES: readonly DealerLedgerStatus[] = ['Posted', 'Pending', 'Reconciled', 'Disputed'];
+const DOC_TYPES: readonly DealerLedgerDocType[] = ['Invoice', 'Payment', 'Credit Note', 'Debit Note', 'Adjustment'];
 
 function randomItem<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)];
@@ -48,49 +38,57 @@ function randomAmount(min: number, max: number): number {
   return Math.round((Math.random() * (max - min) + min) * 100) / 100;
 }
 
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function randomDateWithinDays(daysBack: number): string {
   const offsetMs = Math.floor(Math.random() * daysBack) * 24 * 60 * 60 * 1000;
   return new Date(Date.now() - offsetMs).toISOString().slice(0, 10);
 }
 
-/** Credit-natured transaction types reduce a dealer's outstanding balance; the rest increase it. */
-function isCreditNatured(transactionType: DealerLedgerTransactionType): boolean {
-  return transactionType === 'Payment' || transactionType === 'Credit Note';
+/** Credit-natured doc types reduce a dealer's outstanding balance; the rest increase it. */
+function isCreditNatured(docType: DealerLedgerDocType): boolean {
+  return docType === 'Payment' || docType === 'Credit Note';
 }
 
 /**
  * Generates realistic, internally-consistent mock Dealer Ledger rows. Dealer master data
- * is fixed per dealer; `balance` is a genuine running total per dealer ordered by invoice
- * date (not an unrelated random number), so the mock data behaves like a real ledger.
+ * is fixed per dealer; `amt` is a genuine running total per dealer ordered by doc date
+ * (not an unrelated random number), so the mock data behaves like a real ledger.
  */
 export function generateDealerLedgerRows(count = 50): DealerLedgerRow[] {
   const draftRows: DealerLedgerRow[] = Array.from({ length: count }, (_, index) => {
     const dealer = randomItem(DEALER_MASTER_POOL);
-    const transactionType = randomItem(TRANSACTION_TYPES);
+    const docType = randomItem(DOC_TYPES);
     const amount = randomAmount(500, 50000);
-    const isCredit = isCreditNatured(transactionType);
+    const isCredit = isCreditNatured(docType);
 
     return {
       id: `row-${index + 1}`,
       dealerCode: dealer.dealerCode,
       dealerName: dealer.dealerName,
-      invoiceNumber: `INV-${(100000 + index).toString()}`,
-      invoiceDate: randomDateWithinDays(90),
-      transactionType,
-      debit: isCredit ? 0 : amount,
-      credit: isCredit ? amount : 0,
-      balance: 0, // computed by computeRunningBalances below
-      branch: dealer.branch,
-      state: dealer.state,
-      city: dealer.city,
-      status: randomItem(STATUSES),
+      dealerAddress: dealer.dealerAddress,
+      docType,
+      docReferenceNo: `DOC-${(100000 + index).toString()}`,
+      docDate: randomDateWithinDays(90),
+      assignment: `ASG-${randomInt(1000, 9999)}`,
+      cca: `CCA-${randomInt(10, 99)}`,
+      textDec: docType,
+      narrationVehDescription: `${docType} — Vehicle/Spares transaction`,
+      debitAmount: isCredit ? 0 : amount,
+      creditAmount: isCredit ? amount : 0,
+      currency: dealer.currency,
+      text: `${docType} for ${dealer.dealerName}`,
+      qnt: randomInt(1, 20),
+      amt: 0, // computed by computeRunningAmounts below
     };
   });
 
-  return computeRunningBalances(draftRows);
+  return computeRunningAmounts(draftRows);
 }
 
-function computeRunningBalances(rows: DealerLedgerRow[]): DealerLedgerRow[] {
+function computeRunningAmounts(rows: DealerLedgerRow[]): DealerLedgerRow[] {
   const byDealer = new Map<string, DealerLedgerRow[]>();
   for (const row of rows) {
     const group = byDealer.get(row.dealerCode) ?? [];
@@ -99,11 +97,11 @@ function computeRunningBalances(rows: DealerLedgerRow[]): DealerLedgerRow[] {
   }
 
   for (const group of byDealer.values()) {
-    group.sort((a, b) => a.invoiceDate.localeCompare(b.invoiceDate));
-    let runningBalance = 0;
+    group.sort((a, b) => a.docDate.localeCompare(b.docDate));
+    let runningAmount = 0;
     for (const row of group) {
-      runningBalance += row.debit - row.credit;
-      row.balance = Math.round(runningBalance * 100) / 100;
+      runningAmount += row.debitAmount - row.creditAmount;
+      row.amt = Math.round(runningAmount * 100) / 100;
     }
   }
 
@@ -115,16 +113,12 @@ function computeRunningBalances(rows: DealerLedgerRow[]): DealerLedgerRow[] {
  * filtered/searched result set, not just the current page — an aggregate should
  * reflect the whole matching set, per the Enterprise Reporting Engine Specification's
  * shared Aggregation contract).
- *
- * TODO: Confirm the intended meaning of "closing balance" across a multi-dealer result
- * set with product — computed here as net movement (total debit - total credit) for the
- * current scope, not any single dealer's own running balance.
  */
 export function computeDealerLedgerSummary(rows: DealerLedgerRow[]): DealerLedgerSummary {
   const totals = rows.reduce(
     (acc, row) => ({
-      totalDebit: acc.totalDebit + row.debit,
-      totalCredit: acc.totalCredit + row.credit,
+      totalDebit: acc.totalDebit + row.debitAmount,
+      totalCredit: acc.totalCredit + row.creditAmount,
       entryCount: acc.entryCount + 1,
     }),
     { totalDebit: 0, totalCredit: 0, entryCount: 0 },

@@ -17,31 +17,37 @@ import { computeDealerLedgerSummary, DEALER_LEDGER_MOCK_ROWS } from './dealer-le
 
 export const DEALER_LEDGER_MOCK_COLUMNS: DealerLedgerColumn[] = [
   { key: 'dealerCode', headerLabel: 'Dealer Code', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: 'start', order: 0, width: 120 },
-  { key: 'dealerName', headerLabel: 'Dealer Name', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 1, width: 200 },
-  { key: 'invoiceNumber', headerLabel: 'Invoice Number', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 2, width: 150 },
-  { key: 'invoiceDate', headerLabel: 'Invoice Date', dataType: 'date', sortable: true, filterable: true, hidden: false, pinned: null, order: 3, width: 130 },
-  { key: 'transactionType', headerLabel: 'Transaction Type', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 4, width: 150 },
-  { key: 'debit', headerLabel: 'Debit', dataType: 'currency', sortable: true, filterable: false, hidden: false, pinned: null, order: 5, width: 120 },
-  { key: 'credit', headerLabel: 'Credit', dataType: 'currency', sortable: true, filterable: false, hidden: false, pinned: null, order: 6, width: 120 },
-  { key: 'balance', headerLabel: 'Balance', dataType: 'currency', sortable: true, filterable: false, hidden: false, pinned: 'end', order: 7, width: 130 },
-  { key: 'branch', headerLabel: 'Branch', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 8, width: 130 },
-  { key: 'state', headerLabel: 'State', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 9, width: 140 },
-  { key: 'city', headerLabel: 'City', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 10, width: 130 },
-  { key: 'status', headerLabel: 'Status', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 11, width: 110 },
+  { key: 'docType', headerLabel: 'Doc. Type', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 1, width: 130 },
+  { key: 'docReferenceNo', headerLabel: 'Doc. Reference No.', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 2, width: 160 },
+  { key: 'docDate', headerLabel: 'Doc. Date', dataType: 'date', sortable: true, filterable: true, hidden: false, pinned: null, order: 3, width: 130 },
+  { key: 'assignment', headerLabel: 'Assignment', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 4, width: 130 },
+  { key: 'cca', headerLabel: 'CCA', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 5, width: 100 },
+  { key: 'textDec', headerLabel: 'Text Dec.', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 6, width: 130 },
+  { key: 'narrationVehDescription', headerLabel: 'Narration Veh. Description', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 7, width: 220 },
+  { key: 'debitAmount', headerLabel: 'Debit Amount', dataType: 'currency', sortable: true, filterable: false, hidden: false, pinned: null, order: 8, width: 130 },
+  { key: 'creditAmount', headerLabel: 'Credit Amount', dataType: 'currency', sortable: true, filterable: false, hidden: false, pinned: null, order: 9, width: 130 },
+  { key: 'dealerName', headerLabel: 'Dealer Name', dataType: 'text', sortable: true, filterable: true, hidden: false, pinned: null, order: 10, width: 200 },
+  { key: 'dealerAddress', headerLabel: 'Dealer Address', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 11, width: 220 },
+  { key: 'currency', headerLabel: 'Currency', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 12, width: 100 },
+  { key: 'text', headerLabel: 'Text', dataType: 'text', sortable: true, filterable: false, hidden: false, pinned: null, order: 13, width: 200 },
+  { key: 'qnt', headerLabel: 'QNT.', dataType: 'number', sortable: true, filterable: false, hidden: false, pinned: null, order: 14, width: 90 },
+  { key: 'amt', headerLabel: 'Amt', dataType: 'currency', sortable: true, filterable: false, hidden: false, pinned: 'end', order: 15, width: 130 },
 ];
 
 export const DEALER_LEDGER_MOCK_FILTERS: DealerLedgerFilters = {
   dealerCode: undefined,
-  branch: undefined,
-  state: undefined,
-  city: undefined,
-  status: undefined,
-  transactionType: undefined,
+  dealerDescription: undefined,
+  companyCode: undefined,
   dateFrom: undefined,
   dateTo: undefined,
+  withOeDetails: undefined,
+  withSpDetails: undefined,
+  withAcDetails: undefined,
+  withEvDetails: undefined,
+  withAcwshDetails: undefined,
 };
 
-export const DEALER_LEDGER_MOCK_SORT: Sort[] = [{ columnKey: 'invoiceDate', direction: 'desc' }];
+export const DEALER_LEDGER_MOCK_SORT: Sort[] = [{ columnKey: 'docDate', direction: 'desc' }];
 
 export const DEALER_LEDGER_MOCK_PAGINATION: Pagination = {
   page: 1,
