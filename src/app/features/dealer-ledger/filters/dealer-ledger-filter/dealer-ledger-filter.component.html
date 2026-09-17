@@ -1,31 +1,31 @@
 <div class="dealer-ledger-filter">
-  <app-report-search-bar [initialValue]="initialValue()" />
+  <app-report-search-bar [initialValue]="initialValue()" [readonlyDealerFields]="true" [stacked]="true" />
 
-  <fieldset class="dealer-ledger-filter__checkbox-group">
-    <legend>
+  <div class="dealer-ledger-filter__checkbox-group" role="group" aria-labelledby="dealer-ledger-filter-checkbox-group-label">
+    <span id="dealer-ledger-filter-checkbox-group-label" class="dealer-ledger-filter__checkbox-group-label">
       Include Details
       @if (selectedCheckboxCount() > 0) {
         <span class="dealer-ledger-filter__checkbox-count">({{ selectedCheckboxCount() }} selected)</span>
       }
-    </legend>
-    @for (option of checkboxOptions; track option.key) {
-      <label class="dealer-ledger-filter__checkbox">
-        <input type="checkbox" [checked]="isChecked(option.key)" (change)="onCheckboxToggle(option.key)" />
-        {{ option.label }}
-      </label>
-    }
-  </fieldset>
+    </span>
+    <div class="dealer-ledger-filter__checkbox-options">
+      @for (option of checkboxOptions; track option.key) {
+        <label class="dealer-ledger-filter__checkbox">
+          <input type="checkbox" [checked]="isChecked(option.key)" (change)="onCheckboxToggle(option.key)" />
+          {{ option.label }}
+        </label>
+      }
+    </div>
+  </div>
 
-  <div class="dealer-ledger-filter__actions">
-    <button type="button" (click)="onSearch()">Search</button>
+  <div class="dealer-ledger-filter__submit-row">
     <button
       type="button"
-      [disabled]="!hasActiveFilters()"
-      title="Clear all filters and reload the full result set"
-      (click)="onReset()"
+      class="dealer-ledger-filter__submit-button btn btn-sm btn-outline-secondary"
+      [disabled]="searchBar().isDateRangeInvalid()"
+      (click)="onSubmit()"
     >
-      Reset
+      Show Report
     </button>
-    <button type="button" (click)="onExport()">Export</button>
   </div>
 </div>

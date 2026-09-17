@@ -5,6 +5,8 @@ export const WARRANTY_COST_REPORT_CONFIG: ReportConfig = {
   title: 'Warranty Cost Report',
   description: 'Cost breakdown of warranty claims by dealer.',
   route: 'warranty-cost-report',
-  // Search parameters only for now — table columns are pending confirmed source data.
-  hasTable: false,
+  // Both /config and /data confirmed live against the real backend —
+  // api-integration-dealer-ledger-style-17-09-2026-07_38_AM.md.
+  hasTable: true,
+  apiIntegrated: true,
 };

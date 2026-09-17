@@ -13,12 +13,20 @@
   min-width: 0; // required for the scroll container to actually shrink/scroll in a flex/grid parent
 }
 
+// Monochrome (black/grey/white) palette — monochrome-redesign-and-column-picker-text-fix-17-09-2026-05_56_AM.md.
+// A colored toolbar background previously forced `color: #fff` on this whole subtree,
+// which the Columns/Export popups (nested inside the toolbar) inherited too, making their
+// own dark-on-white text invisible. Removing the color here — instead of patching every
+// popup's text color individually — fixes that at the root, per that spec.
 .data-table__toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0.625rem 1.25rem;
 }
 
 .data-table__toolbar-info {
@@ -30,6 +38,7 @@
 .data-table__title {
   margin: 0;
   font-size: 1.125rem;
+  color: #212529;
 }
 
 .data-table__count {
@@ -44,6 +53,33 @@
   position: relative;
 }
 
+// Square (not pill-shaped) and smaller than the previous pill baseline — see
+// square-smaller-buttons-toolbar-order-and-cell-font-size-17-09-2026-06_00_AM.md.
+.data-table__pill-input {
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  color: #212529;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8125rem;
+
+  &::placeholder {
+    color: #999;
+  }
+
+  &:focus {
+    background: #fff;
+    color: #212529;
+    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
+  }
+}
+
+.data-table__pill-button {
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
 .data-table__column-menu {
   position: relative;
 }
@@ -52,7 +88,10 @@
   position: absolute;
   right: 0;
   top: 100%;
-  z-index: 10;
+  // Above the CDK table's own header/sticky-column stacking context — see
+  // column-picker-and-export-panel-fixes-17-09-2026-05_50_AM.md (the panel was previously
+  // rendering behind the table, obscuring the column-name labels next to each checkbox).
+  z-index: 1000;
   background: #fff;
   border: 1px solid #d0d0d0;
   border-radius: 4px;
@@ -79,7 +118,9 @@
   position: absolute;
   right: 0;
   top: 100%;
-  z-index: 10;
+  // See column-picker-and-export-panel-fixes-17-09-2026-05_50_AM.md — same fix as the
+  // column-menu panel above.
+  z-index: 1000;
   background: #fff;
   border: 1px solid #d0d0d0;
   border-radius: 4px;
@@ -87,15 +128,34 @@
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  min-width: 10rem;
+  gap: 0.5rem;
+  min-width: 12rem;
+  font-size: 0.8125rem;
 }
 
-.data-table__export-scope {
+// Radio-button Scope/Format layout — export-panel-redesign-and-dealer-ledger-filename-17-09-2026-06_35_AM.md.
+.data-table__export-group {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  font-size: 0.8rem;
+  gap: 0.25rem;
+}
+
+.data-table__export-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.data-table__export-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.data-table__export-submit {
+  align-self: flex-start;
 }
 
 .data-table__export-error {
@@ -128,10 +188,28 @@
   text-align: left;
 }
 
+// Previously unset (inherited the larger ambient font size) — see
+// square-smaller-buttons-toolbar-order-and-cell-font-size-17-09-2026-06_00_AM.md.
+.data-table__table td {
+  font-size: 0.8125rem;
+}
+
 .data-table__table th {
   position: relative; // anchors the resize handle
   background: #fafafa;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: #555;
+}
+
+.data-table__table tr[cdk-row]:nth-child(even) {
+  background: #fafafa;
+}
+
+.data-table__table tr[cdk-row]:hover {
+  background: #f0f0f0;
 }
 
 // Angular CDK applies this class (plus inline position/offset styles) to pinned ("sticky"
@@ -227,7 +305,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.75rem;
   font-size: 0.875rem;
 }
@@ -235,5 +313,54 @@
 .data-table__pagination {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
+}
+
+// Square, and smaller than the previous circular baseline — see
+// square-smaller-buttons-toolbar-order-and-cell-font-size-17-09-2026-06_00_AM.md.
+.data-table__page-nav,
+.data-table__page-number {
+  min-width: 1.625rem;
+  height: 1.625rem;
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+// Digits stay compact; the ‹/› glyphs need a larger size to read clearly — see
+// column-picker-font-size-and-pagination-nav-icon-size-17-09-2026-06_21_AM.md.
+.data-table__page-number {
+  font-size: 0.8125rem;
+}
+
+.data-table__page-nav {
+  font-size: 1.125rem;
+}
+
+.data-table__page-nav:hover:not(:disabled),
+.data-table__page-number:hover:not(.data-table__page-number--active) {
+  background: #f0f0f0;
+}
+
+.data-table__page-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.data-table__page-number--active {
+  background: #212529;
+  border-color: #212529;
+  color: #fff;
+}
+
+.data-table__page-ellipsis {
+  padding: 0 0.25rem;
+  color: #999;
 }

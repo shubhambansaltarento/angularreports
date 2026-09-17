@@ -11,4 +11,5 @@ export const GOODS_ACKNOWLEDGEMENT_REPORT_CONFIG: ReportConfig = {
   // rows are populated, per explicit instruction not to fabricate data for this report
   // until its source data is confirmed.
   hasTable: true,
+  apiIntegrated: false,
 };

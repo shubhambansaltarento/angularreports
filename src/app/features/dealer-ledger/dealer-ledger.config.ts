@@ -7,4 +7,5 @@ export const DEALER_LEDGER_REPORT_CONFIG: ReportConfig = {
   description: 'Dealer-wise ledger entries with running balances across documents.',
   route: DEALER_LEDGER_FEATURE_PATH,
   hasTable: true,
+  apiIntegrated: true,
 };

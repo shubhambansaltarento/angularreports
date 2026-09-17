@@ -2,6 +2,26 @@ import { TestBed } from '@angular/core/testing';
 import { ExportService } from './export.service';
 import { ExportColumn } from './models/export-column.model';
 
+// Mocked rather than exercised for real: jsPDF's UMD build resolves to its Node
+// (fs-writing) code path under Vitest's Node-based test runner instead of the browser
+// Blob/anchor path it uses in the actual esbuild browser bundle. Mocking it here tests
+// that ExportService drives jsPDF correctly, without depending on that environment quirk.
+const { saveMock, textMock, autoTableMock } = vi.hoisted(() => ({
+  saveMock: vi.fn(),
+  textMock: vi.fn(),
+  autoTableMock: vi.fn(),
+}));
+
+vi.mock('jspdf', () => ({
+  jsPDF: vi.fn().mockImplementation(function MockJsPDF(this: Record<string, unknown>) {
+    this['save'] = saveMock;
+    this['text'] = textMock;
+    this['setFontSize'] = vi.fn();
+  }),
+}));
+
+vi.mock('jspdf-autotable', () => ({ default: autoTableMock }));
+
 interface DemoRow {
   id: string;
   name: string;
@@ -29,6 +49,9 @@ describe('ExportService', () => {
 
     createdBlobs = [];
     objectUrls = [];
+    saveMock.mockClear();
+    textMock.mockClear();
+    autoTableMock.mockClear();
 
     vi.stubGlobal('URL', {
       ...URL,
@@ -76,8 +99,26 @@ describe('ExportService', () => {
     expect(text).toContain('<td>Gadget</td>');
   });
 
-  it('throws for the PDF placeholder rather than silently doing nothing', () => {
-    expect(() => service.exportToPdf(ROWS, COLUMNS, 'demo')).toThrow(/not yet implemented/i);
+  it('generates a PDF via jsPDF/autotable and saves it under the given filename (regression: used to throw "not yet implemented")', () => {
+    expect(() => service.exportToPdf(ROWS, COLUMNS, 'demo')).not.toThrow();
+
+    expect(autoTableMock).toHaveBeenCalledTimes(1);
+    const [, options] = autoTableMock.mock.calls[0];
+    expect(options.head).toEqual([['Name', 'Amount']]);
+    expect(options.body).toEqual([
+      ['Widget, Small', '10'],
+      ['Gadget', '20'],
+    ]);
+
+    expect(saveMock).toHaveBeenCalledWith('demo.pdf');
+    expect(textMock).not.toHaveBeenCalled();
+  });
+
+  it('prints an optional title above the PDF table', () => {
+    service.exportToPdf(ROWS, COLUMNS, 'demo', 'Demo Report');
+
+    expect(textMock).toHaveBeenCalledWith('Demo Report', expect.any(Number), expect.any(Number));
+    expect(saveMock).toHaveBeenCalledWith('demo.pdf');
   });
 
   it('opens a print window with a rendered table', () => {

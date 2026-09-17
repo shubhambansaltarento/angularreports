@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, of } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { DEALER_LEDGER_DEFAULT_PAGE, DEALER_LEDGER_DEFAULT_PAGE_SIZE } from '../constants/dealer-ledger.constants';
+import { DealerLedgerEffectiveColumn } from '../models/dealer-ledger-api-response.model';
 import { DealerLedgerFilters } from '../models/dealer-ledger-filters.model';
 import { DealerLedgerRequest } from '../models/dealer-ledger-request.model';
 import { DealerLedgerResponse } from '../models/dealer-ledger-response.model';
@@ -10,7 +11,6 @@ import { DealerLedgerRow } from '../models/dealer-ledger-row.model';
 import { DealerLedgerSummary } from '../models/dealer-ledger-summary.model';
 import { Pagination } from '../models/pagination.model';
 import { SelectionState } from '../models/selection-state.model';
-import { Sort, SortDirection } from '../models/sort.model';
 import { DealerLedgerService } from '../services/dealer-ledger.service';
 
 const INITIAL_PAGINATION: Pagination = {
@@ -29,8 +29,10 @@ const INITIAL_SELECTION: SelectionState = { selectedIds: [], allMatchingFilter: 
  * Provided at the feature route level (see dealer-ledger.routes.ts), not `providedIn: 'root'`,
  * so its state does not leak beyond this feature.
  *
- * Note: the "Sort" state is exposed as `sortState`, not `sort` — `sort` is already the verb
- * method name (`sort(columnKey)`), and a class cannot declare two members with the same name.
+ * The data API is not paginated — one request per filter/search change returns the full
+ * matching result set (api-not-paginated-client-side-pagination-16-09-2026-04_35_PM.md). There is
+ * accordingly no `changePage()`/`changePageSize()`/`sort()` here: pagination and sorting
+ * are entirely the shared table's own client-side concern over the already-fetched rows.
  */
 @Injectable()
 export class DealerLedgerStore {
@@ -39,23 +41,37 @@ export class DealerLedgerStore {
   // ---- State ----------------------------------------------------------------------------
 
   private readonly _loading = signal(false);
+  private readonly _hasSearched = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _rows = signal<DealerLedgerRow[]>([]);
   private readonly _summary = signal<DealerLedgerSummary | null>(null);
   private readonly _pagination = signal<Pagination>(INITIAL_PAGINATION);
-  private readonly _sort = signal<Sort[]>([]);
   private readonly _filters = signal<DealerLedgerFilters>({});
   private readonly _searchTerm = signal('');
   private readonly _selection = signal<SelectionState>(INITIAL_SELECTION);
+  /**
+   * The last response's `effectiveColumns` (effective-columns-drive-table-headers-16-09-2026-03_59_PM,
+   * effective-columns-shape-change-17-09-2026-05_41_AM) — `null` until a real response has
+   * supplied one.
+   */
+  private readonly _effectiveColumns = signal<DealerLedgerEffectiveColumn[] | null>(null);
 
   readonly loading = this._loading.asReadonly();
+  /**
+   * True once at least one fetch has been requested (Submit/Reset/refresh) —
+   * hide-table-until-submit-17-09-2026-12_01_AM.md. Set as soon as a request is issued (not only once
+   * its response arrives), so the table (including its first-fetch loading skeleton) can
+   * be revealed for that in-flight request rather than staying hidden until it resolves.
+   * Never reset back to `false`.
+   */
+  readonly hasSearched = this._hasSearched.asReadonly();
   readonly error = this._error.asReadonly();
   readonly data = this._rows.asReadonly();
   readonly summary = this._summary.asReadonly();
   readonly pagination = this._pagination.asReadonly();
-  readonly sortState = this._sort.asReadonly();
   readonly filters = this._filters.asReadonly();
   readonly searchTerm = this._searchTerm.asReadonly();
+  readonly effectiveColumns = this._effectiveColumns.asReadonly();
   readonly selection = this._selection.asReadonly();
 
   // ---- Computed ---------------------------------------------------------------------------
@@ -81,6 +97,7 @@ export class DealerLedgerStore {
       .pipe(
         tap(() => {
           this._loading.set(true);
+          this._hasSearched.set(true);
           this._error.set(null);
         }),
         switchMap((request) =>
@@ -98,12 +115,12 @@ export class DealerLedgerStore {
 
   // ---- Methods ------------------------------------------------------------------------------
 
-  /** Initial fetch using whatever filters/sort/pagination the store currently holds. */
+  /** Initial fetch using whatever filters the store currently holds. */
   load(): void {
     this.fetch();
   }
 
-  /** Applies new filters/search term, resets to page 1, and fetches. */
+  /** Applies new filters/search term and fetches the full matching result set. */
   search(filters: DealerLedgerFilters, searchTerm = ''): void {
     this._filters.set(filters);
     this._searchTerm.set(searchTerm);
@@ -111,36 +128,11 @@ export class DealerLedgerStore {
     this.fetch();
   }
 
-  /** Clears filters, search term, sort, and selection back to their defaults, and fetches. */
+  /** Clears filters, search term, and selection back to their defaults, and fetches. */
   reset(): void {
     this._filters.set({});
     this._searchTerm.set('');
-    this._sort.set([]);
     this._selection.set(INITIAL_SELECTION);
-    this._pagination.update((pagination) => ({ ...pagination, page: DEALER_LEDGER_DEFAULT_PAGE }));
-    this.fetch();
-  }
-
-  /** Navigates to the given 1-based page and fetches. */
-  changePage(page: number): void {
-    this._pagination.update((pagination) => ({ ...pagination, page: Math.max(DEALER_LEDGER_DEFAULT_PAGE, page) }));
-    this.fetch();
-  }
-
-  /** Changes the page size, resets to page 1, and fetches. */
-  changePageSize(pageSize: number): void {
-    this._pagination.update((pagination) => ({ ...pagination, pageSize, page: DEALER_LEDGER_DEFAULT_PAGE }));
-    this.fetch();
-  }
-
-  /** Cycles the given column's sort direction (none -> asc -> desc -> none), resets to page 1, and fetches. */
-  sort(columnKey: string): void {
-    const existing = this._sort().find((entry) => entry.columnKey === columnKey);
-    const nextDirection: SortDirection | null =
-      !existing ? 'asc' : existing.direction === 'asc' ? 'desc' : null;
-
-    this._sort.set(nextDirection ? [{ columnKey, direction: nextDirection }] : []);
-    this._pagination.update((pagination) => ({ ...pagination, page: DEALER_LEDGER_DEFAULT_PAGE }));
     this.fetch();
   }
 
@@ -171,7 +163,7 @@ export class DealerLedgerStore {
     });
   }
 
-  /** Re-fetches the current page with the current filters/sort — e.g. a manual refresh action. */
+  /** Re-fetches with the current filters — e.g. a manual refresh action. */
   refresh(): void {
     this.fetch();
   }
@@ -183,7 +175,10 @@ export class DealerLedgerStore {
     this.requests.next({
       page,
       pageSize,
-      sort: this._sort(),
+      // The API is not paginated — one request returns the full matching result set, and
+      // sorting/pagination happen entirely client-side in the table (api-not-paginated-client-side-pagination-16-09-2026-04_35_PM) — so `sort`
+      // is always empty here; it exists only because `DealerLedgerRequest` still models it.
+      sort: [],
       filters: this._filters(),
       search: this._searchTerm() || undefined,
     });
@@ -196,5 +191,8 @@ export class DealerLedgerStore {
     this._rows.set(response.rows);
     this._summary.set(response.summary);
     this._pagination.update((pagination) => ({ ...pagination, totalCount: response.totalCount }));
+    if (response.effectiveColumns) {
+      this._effectiveColumns.set(response.effectiveColumns);
+    }
   }
 }

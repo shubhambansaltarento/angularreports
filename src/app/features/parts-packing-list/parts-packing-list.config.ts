@@ -7,4 +7,5 @@ export const PARTS_PACKING_LIST_REPORT_CONFIG: ReportConfig = {
   route: 'parts-packing-list',
   // Search parameters only for now — table columns are pending confirmed source data.
   hasTable: false,
+  apiIntegrated: false,
 };

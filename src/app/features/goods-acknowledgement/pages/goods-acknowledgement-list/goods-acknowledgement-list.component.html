@@ -1,7 +1,9 @@
 <div class="goods-acknowledgement-list">
   <header class="goods-acknowledgement-list__header">
-    <h1>Goods Acknowledgement</h1>
+    <h1>{{ title }}</h1>
   </header>
+
+  <app-breadcrumb [currentLabel]="title" />
 
   <app-report-search-bar [initialValue]="initialValue()" />
 

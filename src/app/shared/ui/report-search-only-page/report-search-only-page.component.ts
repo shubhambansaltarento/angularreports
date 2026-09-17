@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, viewChild } from '@angular/core';
 import { CommonReportSearchFilters } from '../../models/report-search-filters.model';
 import { DealerContextService } from '../../services/dealer-context/dealer-context.service';
+import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { ReportSearchBarComponent } from '../report-search-bar/report-search-bar.component';
 
 /**
@@ -12,7 +13,7 @@ import { ReportSearchBarComponent } from '../report-search-bar/report-search-bar
  */
 @Component({
   selector: 'app-report-search-only-page',
-  imports: [ReportSearchBarComponent],
+  imports: [ReportSearchBarComponent, BreadcrumbComponent],
   templateUrl: './report-search-only-page.component.html',
   styleUrl: './report-search-only-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

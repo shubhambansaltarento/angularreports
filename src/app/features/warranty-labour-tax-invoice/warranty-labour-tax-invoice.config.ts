@@ -7,4 +7,5 @@ export const WARRANTY_LABOUR_TAX_INVOICE_REPORT_CONFIG: ReportConfig = {
   route: 'warranty-labour-tax-invoice',
   // Search parameters only for now — table columns are pending confirmed source data.
   hasTable: false,
+  apiIntegrated: false,
 };

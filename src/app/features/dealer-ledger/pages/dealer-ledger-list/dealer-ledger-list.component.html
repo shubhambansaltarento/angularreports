@@ -1,12 +1,11 @@
 <div class="dealer-ledger-list">
-  <app-dealer-ledger-toolbar
-    class="dealer-ledger-list__header"
-    [totalCount]="store.filteredCount()"
-    [loading]="store.loading()"
-  />
+  <app-dealer-ledger-toolbar class="dealer-ledger-list__header" />
+
+  <app-breadcrumb currentLabel="Dealer Ledger" />
 
   <app-dealer-ledger-filter
     class="dealer-ledger-list__filters"
+    [config]="config()"
     (searched)="onSearch($event)"
     (reset)="onReset()"
   />
@@ -18,15 +17,16 @@
     </div>
   }
 
-  <app-dealer-ledger-summary-cards
-    class="dealer-ledger-list__summary"
-    [summary]="store.summary()"
-    [loading]="store.loading()"
-  />
-
-  <app-dealer-ledger-table
-    class="dealer-ledger-list__table"
-    [rows]="store.data()"
-    [loading]="store.loading()"
-  />
+  @if (store.hasSearched()) {
+    <app-dealer-ledger-table
+      class="dealer-ledger-list__table"
+      [rows]="store.data()"
+      [loading]="store.loading()"
+      [resetDisabled]="!filter().hasActiveFilters()"
+      [exportFormats]="exportFormats()"
+      [effectiveColumns]="store.effectiveColumns()"
+      [dealerName]="config()?.context?.dealerDescription ?? null"
+      (reset)="onTableReset()"
+    />
+  }
 </div>

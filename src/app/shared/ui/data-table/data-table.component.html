@@ -4,12 +4,12 @@
       @if (title()) {
         <h2 class="data-table__title">{{ title() }}</h2>
       }
-      <span class="data-table__count">{{ totalCount() }} records</span>
+      <span class="data-table__count">{{ resolvedTotalCount() }} records</span>
     </div>
 
     <div class="data-table__toolbar-actions">
       <input
-        class="data-table__search"
+        class="data-table__search data-table__pill-input form-control form-control-sm"
         type="search"
         placeholder="Search..."
         [value]="searchInputValue()"
@@ -18,7 +18,14 @@
       />
 
       <div class="data-table__column-menu">
-        <button type="button" (click)="toggleColumnMenu()" aria-haspopup="true">Columns</button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary data-table__pill-button"
+          (click)="toggleColumnMenu()"
+          aria-haspopup="true"
+        >
+          Columns
+        </button>
         @if (isColumnMenuOpen()) {
           <div class="data-table__column-menu-panel" role="menu">
             <app-data-table-column-settings
@@ -33,21 +40,75 @@
         }
       </div>
 
+      @if (showReset()) {
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary data-table__pill-button"
+          [disabled]="resetDisabled()"
+          title="Clear all filters and reload the full result set"
+          (click)="resetClicked.emit()"
+        >
+          Reset
+        </button>
+      }
+
       <div class="data-table__export-menu">
-        <button type="button" (click)="toggleExportMenu()" aria-haspopup="true">Export</button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary data-table__pill-button"
+          (click)="toggleExportMenu()"
+          aria-haspopup="true"
+        >
+          Export
+        </button>
         @if (isExportMenuOpen()) {
           <div class="data-table__export-menu-panel" role="menu">
-            <label class="data-table__export-scope">
-              <span>Scope</span>
-              <select [value]="exportScope()" (change)="onExportScopeChange($event)">
-                <option value="currentPage">Current page</option>
-                <option value="all">All filtered rows</option>
-              </select>
-            </label>
-            <button type="button" (click)="onExport('csv')">CSV</button>
-            <button type="button" (click)="onExport('excel')">Excel</button>
-            <button type="button" (click)="onExport('print')">Print</button>
-            <button type="button" (click)="onExport('pdf')">PDF</button>
+            <div class="data-table__export-group">
+              <span class="data-table__export-group-label">Scope</span>
+              <label class="data-table__export-radio">
+                <input
+                  type="radio"
+                  [name]="tableId() + '-export-scope'"
+                  [checked]="exportScope() === 'all'"
+                  (change)="onExportScopeSelect('all')"
+                />
+                All Filtered Rows
+              </label>
+              <label class="data-table__export-radio">
+                <input
+                  type="radio"
+                  [name]="tableId() + '-export-scope'"
+                  [checked]="exportScope() === 'currentPage'"
+                  (change)="onExportScopeSelect('currentPage')"
+                />
+                Current Page
+              </label>
+            </div>
+
+            <div class="data-table__export-group">
+              <span class="data-table__export-group-label">Format</span>
+              @for (format of visibleExportFormats(); track format) {
+                <label class="data-table__export-radio">
+                  <input
+                    type="radio"
+                    [name]="tableId() + '-export-format'"
+                    [checked]="selectedExportFormat() === format"
+                    (change)="onExportFormatSelect(format)"
+                  />
+                  <i class="bi {{ exportFormatIcon(format) }}" aria-hidden="true"></i>
+                  {{ exportFormatLabel(format) }}
+                </label>
+              }
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary data-table__export-submit"
+              [disabled]="!selectedExportFormat()"
+              (click)="onExportClick()"
+            >
+              Export
+            </button>
           </div>
         }
       </div>
@@ -55,11 +116,11 @@
   </div>
 
   @if (exportError(); as exportErrorMessage) {
-    <p class="data-table__export-error" role="alert">{{ exportErrorMessage }}</p>
+    <p class="data-table__export-error alert alert-danger py-2 mb-0" role="alert">{{ exportErrorMessage }}</p>
   }
 
   <div class="data-table__scroll-container">
-    <table cdk-table [dataSource]="pagedData()" [trackBy]="trackByFn" class="data-table__table">
+    <table cdk-table [dataSource]="pagedData()" [trackBy]="trackByFn" class="data-table__table table table-hover">
       @if (selectionMode() !== 'none') {
         <ng-container cdkColumnDef="__select__" sticky>
           <th cdk-header-cell *cdkHeaderCellDef class="data-table__select-cell">
@@ -137,26 +198,47 @@
       <div class="data-table__empty-state" role="status">
         <p>{{ emptyStateMessage() }}</p>
         @if (searchTerm()) {
-          <button type="button" (click)="clearSearch()">Clear search</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearSearch()">Clear search</button>
         }
       </div>
     }
   </div>
 
   <div class="data-table__footer">
-    <label class="data-table__page-size">
-      Rows per page:
-      <select [value]="pageSize()" (change)="onPageSizeChange($event)">
-        @for (size of pageSizeOptions(); track size) {
-          <option [value]="size">{{ size }}</option>
+    <nav class="data-table__pagination" aria-label="Pagination">
+      <button
+        type="button"
+        class="data-table__page-nav"
+        [disabled]="effectiveCurrentPage() === 1"
+        (click)="goToPreviousPage()"
+        aria-label="Previous page"
+      >
+        ‹
+      </button>
+      @for (page of pageNumbers(); track $index) {
+        @if (page === 'ellipsis') {
+          <span class="data-table__page-ellipsis" aria-hidden="true">…</span>
+        } @else {
+          <button
+            type="button"
+            class="data-table__page-number"
+            [class.data-table__page-number--active]="page === effectiveCurrentPage()"
+            [attr.aria-current]="page === effectiveCurrentPage() ? 'page' : null"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
         }
-      </select>
-    </label>
-
-    <div class="data-table__pagination">
-      <button type="button" [disabled]="currentPage() === 1" (click)="goToPreviousPage()">Previous</button>
-      <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
-      <button type="button" [disabled]="currentPage() === totalPages()" (click)="goToNextPage()">Next</button>
-    </div>
+      }
+      <button
+        type="button"
+        class="data-table__page-nav"
+        [disabled]="effectiveCurrentPage() === totalPages()"
+        (click)="goToNextPage()"
+        aria-label="Next page"
+      >
+        ›
+      </button>
+    </nav>
   </div>
 </div>

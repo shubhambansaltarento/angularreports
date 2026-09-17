@@ -1,5 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { ExportColumn } from './models/export-column.model';
 
 /**
@@ -52,13 +54,30 @@ export class ExportService {
   }
 
   /**
-   * Placeholder: real PDF generation (e.g. via `jsPDF`/`pdfmake`) is not implemented — no
-   * such dependency has been added. This method exists so the format is already wired
-   * through the reusable Export surface (and any consuming toolbar) without requiring a
-   * call-site change once real generation is implemented.
+   * Generates a tabular PDF via `jspdf` + `jspdf-autotable` — landscape A4, auto-paginating
+   * across multiple pages when the row count exceeds one page's height. `title`, when given,
+   * prints as a heading above the table (mirroring `print()`'s title).
    */
-  exportToPdf<T>(_rows: T[], _columns: ExportColumn<T>[], _filename = 'export'): void {
-    throw new Error('PDF export is not yet implemented.');
+  exportToPdf<T>(rows: T[], columns: ExportColumn<T>[], filename = 'export', title?: string): void {
+    if (!this.isBrowser) return;
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+    if (title) {
+      doc.setFontSize(14);
+      doc.text(title, 40, 32);
+    }
+
+    autoTable(doc, {
+      head: [columns.map((column) => column.header)],
+      body: rows.map((row) => columns.map((column) => this.formatValue(row[column.key]))),
+      startY: title ? 48 : 24,
+      margin: { left: 24, right: 24 },
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [91, 108, 247] },
+    });
+
+    doc.save(`${filename}.pdf`);
   }
 
   private toCsv<T>(rows: T[], columns: ExportColumn<T>[]): string {

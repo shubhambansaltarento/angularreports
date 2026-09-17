@@ -1,0 +1,23 @@
+<div class="warranty-reconciliation-filter">
+  <app-report-search-bar
+    [initialValue]="initialValue()"
+    [readonlyDealerFields]="true"
+    [stacked]="true"
+    [showCompanyCode]="false"
+    [requireDateRange]="true"
+    [minDate]="minDate"
+    [maxDate]="maxDate"
+    [maxRangeDays]="maxRangeDays"
+  />
+
+  <div class="warranty-reconciliation-filter__submit-row">
+    <button
+      type="button"
+      class="warranty-reconciliation-filter__submit-button btn btn-sm btn-outline-secondary"
+      [disabled]="searchBar().isDateRangeInvalid()"
+      (click)="onSubmit()"
+    >
+      Show Report
+    </button>
+  </div>
+</div>

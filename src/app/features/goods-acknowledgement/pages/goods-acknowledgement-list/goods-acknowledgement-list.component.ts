@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { CommonReportSearchFilters } from '../../../../shared/models/report-search-filters.model';
+import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DataTableComponent } from '../../../../shared/ui/data-table/data-table.component';
 import { TableColumn } from '../../../../shared/ui/data-table/models/table-column.model';
 import { ReportSearchBarComponent } from '../../../../shared/ui/report-search-bar/report-search-bar.component';
@@ -23,12 +24,13 @@ const GOODS_ACKNOWLEDGEMENT_TABLE_COLUMNS: TableColumn<GoodsAcknowledgementRow>[
  */
 @Component({
   selector: 'app-goods-acknowledgement-list',
-  imports: [ReportSearchBarComponent, DataTableComponent],
+  imports: [ReportSearchBarComponent, DataTableComponent, BreadcrumbComponent],
   templateUrl: './goods-acknowledgement-list.component.html',
   styleUrl: './goods-acknowledgement-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GoodsAcknowledgementListComponent {
+  protected readonly title = 'Goods Acknowledgement';
   protected readonly columns = GOODS_ACKNOWLEDGEMENT_TABLE_COLUMNS;
   /** Always empty — no data source is wired up yet for this report (see class doc). */
   protected readonly rows: GoodsAcknowledgementRow[] = [];

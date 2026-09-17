@@ -32,6 +32,21 @@ import { TableSortState } from './models/table-sort-state.model';
 
 type ExportScope = 'currentPage' | 'all';
 
+const ALL_EXPORT_FORMATS: ExportFormat[] = ['csv', 'excel', 'print', 'pdf'];
+const EXPORT_FORMAT_LABELS: Record<ExportFormat, string> = {
+  csv: 'CSV',
+  excel: 'Excel',
+  print: 'Print',
+  pdf: 'PDF',
+};
+/** Bootstrap Icons glyph per format — export-panel-redesign-and-dealer-ledger-filename-17-09-2026-06_35_AM.md. */
+const EXPORT_FORMAT_ICONS: Record<ExportFormat, string> = {
+  csv: 'bi-filetype-csv',
+  excel: 'bi-file-earmark-excel',
+  print: 'bi-printer',
+  pdf: 'bi-file-earmark-pdf',
+};
+
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const SEARCH_DEBOUNCE_MS = 250;
 const MAX_SKELETON_ROWS = 8;
@@ -71,8 +86,6 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   readonly selectionMode = input<TableSelectionMode>('none');
 
-  readonly pageSizeOptions = input<readonly number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
-
   readonly initialPageSize = input<number>(DEFAULT_PAGE_SIZE_OPTIONS[0]);
 
   readonly title = input<string>('');
@@ -83,7 +96,59 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   /** Message shown in the empty state — lets each consumer phrase "no data" for its own domain. */
   readonly emptyStateMessage = input<string>('No records found.');
 
+  /**
+   * Opts a report into a "Reset" control in this table's own header, alongside its
+   * search/Export controls — for reports (e.g. Dealer Ledger) whose own filter panel does
+   * not render its own Reset button. The table has no notion of "filters" itself; it only
+   * renders the button and disables it per `resetDisabled`, emitting `resetClicked` for
+   * the consuming page to clear whatever filter state it owns.
+   */
+  readonly showReset = input(false);
+
+  /** Disables the header Reset control — typically "no filter is currently active". */
+  readonly resetDisabled = input(false);
+
+  /** Restricts the Export menu to these formats; `null` (default) shows every format. */
+  readonly exportFormats = input<ExportFormat[] | null>(null);
+
+  /**
+   * Overrides `tableId()` as the export file's base name (extension still appended by
+   * `ExportService`) — e.g. Dealer Ledger's report-key/dealer-name/timestamp pattern, per
+   * export-panel-redesign-and-dealer-ledger-filename-17-09-2026-06_35_AM.md. `null`
+   * (default) preserves the existing `tableId()`-based filename for every other consumer.
+   */
+  readonly exportFilename = input<string | null>(null);
+
+  /**
+   * Server-side pagination mode (spec-table-server-side-pagination.md): when non-null,
+   * `data` is treated as *only the current page*, not the full dataset — `totalPages` is
+   * computed from this instead of `data().length`, `pagedData()` returns `data`
+   * (already-sorted/paginated) as-is, and Prev/Next/page-number clicks emit `pageChange`
+   * instead of slicing locally. `null` (default): existing client-side pagination,
+   * unaffected.
+   */
+  readonly totalCount = input<number | null>(null);
+
+  /** The current 1-based page, when server-paginated — ignored in client-side mode. */
+  readonly page = input<number | null>(null);
+
+  /**
+   * The server's actual applied sort, when server-paginated — keeps the header's sort
+   * arrow in sync with what the backend actually returned, independent of this table's own
+   * (otherwise-authoritative) local toggle state. Ignored in client-side mode.
+   */
+  readonly sort = input<TableSortState | null>(null);
+
   readonly selectionChange = output<T[]>();
+
+  /** Fires when the header Reset control (see `showReset`) is clicked. */
+  readonly resetClicked = output<void>();
+
+  /** Fires instead of paginating locally, in server-side mode (see `totalCount`). */
+  readonly pageChange = output<number>();
+
+  /** Fires with the clicked column's key instead of sorting locally, in server-side mode (see `totalCount`). */
+  readonly sortChange = output<string>();
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -94,6 +159,8 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   /** Hide/show, order, width, and pin state for every column — persisted per `tableId`. */
   private readonly columnState = signal<TableColumnState[]>([]);
+  /** Guards the `columns()`-resync effect against running before `ngOnInit`'s initial build. */
+  private hasInitializedColumnState = false;
   protected readonly sortState = signal<TableSortState>({ columnKey: null, direction: null });
   protected readonly currentPage = signal(1);
   protected readonly pageSize: ReturnType<typeof signal<number>>;
@@ -101,8 +168,15 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   protected readonly searchInputValue = signal('');
   protected readonly isColumnMenuOpen = signal(false);
   protected readonly isExportMenuOpen = signal(false);
-  protected readonly exportScope = signal<ExportScope>('currentPage');
+  /**
+   * Defaults to exporting every filtered/sorted row, not just the currently-visible page —
+   * column-picker-and-export-panel-fixes-17-09-2026-05_50_AM.md. The user can still pick
+   * "Current page" explicitly from the Scope dropdown.
+   */
+  protected readonly exportScope = signal<ExportScope>('all');
   protected readonly exportError = signal<string | null>(null);
+  /** User's explicit format pick, if any — falls back to the first available format via `selectedExportFormat`. */
+  private readonly selectedExportFormatOverride = signal<ExportFormat | null>(null);
 
   private readonly selectionModel: SelectionModel<T>;
   protected readonly selectedRows: Signal<T[]>;
@@ -162,6 +236,15 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     return map;
   });
 
+  /** True when the consumer supplies `totalCount` — `data` is only the current server page, not the full dataset. */
+  protected readonly isServerPaginated = computed(() => this.totalCount() !== null);
+
+  /** The current page, preferring the server-controlled `page` input when server-paginated. */
+  protected readonly effectiveCurrentPage = computed(() => this.page() ?? this.currentPage());
+
+  /** The active sort, preferring the server-confirmed `sort` input when server-paginated. */
+  protected readonly effectiveSortState = computed(() => this.sort() ?? this.sortState());
+
   protected readonly filteredData = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const rows = this.data();
@@ -172,8 +255,12 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   });
 
   protected readonly sortedData = computed(() => {
-    const { columnKey, direction } = this.sortState();
     const rows = this.filteredData();
+    // Server-paginated data arrives already sorted by the backend — sorting only the
+    // current page locally would silently produce a wrong order relative to other pages.
+    if (this.isServerPaginated()) return rows;
+
+    const { columnKey, direction } = this.sortState();
     if (!columnKey || !direction) return rows;
 
     const factor = direction === 'asc' ? 1 : -1;
@@ -187,18 +274,51 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     });
   });
 
-  protected readonly totalCount = computed(() => this.filteredData().length);
+  protected readonly resolvedTotalCount = computed(() => this.totalCount() ?? this.filteredData().length);
 
-  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize())));
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.resolvedTotalCount() / this.pageSize())),
+  );
+
+  /**
+   * Numbered pagination model for the footer — a windowed set of page numbers around the
+   * current page (plus the first/last page), with `'ellipsis'` markers for skipped ranges.
+   * Shows every page when the total is small enough that windowing would not save space.
+   */
+  protected readonly pageNumbers = computed<(number | 'ellipsis')[]>(() => {
+    const total = this.totalPages();
+    const current = this.effectiveCurrentPage();
+
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, index) => index + 1);
+    }
+
+    const pages = new Set([1, total, current - 1, current, current + 1]);
+    const sorted = [...pages].filter((page) => page >= 1 && page <= total).sort((a, b) => a - b);
+
+    const result: (number | 'ellipsis')[] = [];
+    let previous = 0;
+    for (const page of sorted) {
+      if (previous && page - previous > 1) {
+        result.push('ellipsis');
+      }
+      result.push(page);
+      previous = page;
+    }
+    return result;
+  });
 
   protected readonly pagedData = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
+    // Server-paginated: `data` already IS the current page — nothing to slice further.
+    if (this.isServerPaginated()) return this.sortedData();
+
+    const start = (this.effectiveCurrentPage() - 1) * this.pageSize();
     return this.sortedData().slice(start, start + this.pageSize());
   });
 
   protected readonly isInitialLoading = computed(() => this.loading() && this.data().length === 0);
   protected readonly isOverlayLoading = computed(() => this.loading() && this.data().length > 0);
-  protected readonly isEmpty = computed(() => !this.loading() && this.totalCount() === 0);
+  protected readonly isEmpty = computed(() => !this.loading() && this.resolvedTotalCount() === 0);
   protected readonly skeletonRowIndexes = computed(() =>
     Array.from({ length: Math.min(this.pageSize(), MAX_SKELETON_ROWS) }, (_, index) => index),
   );
@@ -233,11 +353,27 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
     // Clamp the current page whenever filtering/sorting/page-size changes shrink the
     // total page count, rather than unconditionally resetting to page 1 on every change.
+    // Server-paginated mode has no internal `currentPage` of its own to clamp — the
+    // consumer owns that state.
     effect(() => {
+      if (this.isServerPaginated()) return;
       const total = this.totalPages();
       if (this.currentPage() > total) {
         this.currentPage.set(total);
       }
+    });
+
+    // Re-syncs `hidden` for each column whenever `columns()` later resolves to a
+    // different set of definitions (e.g. Dealer Ledger's `effectiveColumns` arriving
+    // asynchronously, after the table already initialized `columnState` from its
+    // fallback columns) — column-hidden-default-not-applied-when-columns-change-after-init-17-09-2026-06_25_AM.md.
+    // Only affects columns the user hasn't explicitly toggled; `hasInitializedColumnState`
+    // guards against racing `ngOnInit`'s own initial build (this effect's first run
+    // happens before `ngOnInit`, since inputs aren't guaranteed set until then).
+    effect(() => {
+      const definitions = this.columns();
+      if (!this.hasInitializedColumnState) return;
+      this.syncColumnStateWithDefinitions(definitions);
     });
 
     this.destroyRef.onDestroy(() => {
@@ -258,6 +394,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     } else {
       this.columnState.set(defaultColumnState);
     }
+    this.hasInitializedColumnState = true;
   }
 
   protected cellTemplateFor(columnKey: string): TemplateRef<{ $implicit: unknown; column: unknown }> | undefined {
@@ -265,20 +402,27 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   protected onSortColumn(columnKey: string): void {
-    const current = this.sortState();
-    if (current.columnKey !== columnKey) {
-      this.sortState.set({ columnKey, direction: 'asc' });
-      return;
+    const current = this.effectiveSortState();
+    const next: TableSortState =
+      current.columnKey !== columnKey
+        ? { columnKey, direction: 'asc' }
+        : current.direction === 'asc'
+          ? { columnKey, direction: 'desc' }
+          : { columnKey: null, direction: null };
+
+    this.sortState.set(next);
+    // Server-paginated: sorting the loaded page locally would misorder it relative to the
+    // other pages — ask the consumer to re-fetch sorted instead. The consumer's own sort
+    // toggle (e.g. `DealerLedgerStore.sort()`) implements the identical 3-state cycle from
+    // its own current state, kept in sync with this table's via the `sort` input — so only
+    // the clicked column key needs to be sent, not the direction this table computed.
+    if (this.isServerPaginated()) {
+      this.sortChange.emit(columnKey);
     }
-    if (current.direction === 'asc') {
-      this.sortState.set({ columnKey, direction: 'desc' });
-      return;
-    }
-    this.sortState.set({ columnKey: null, direction: null });
   }
 
   protected sortIndicator(columnKey: string): string {
-    const state = this.sortState();
+    const state = this.effectiveSortState();
     if (state.columnKey !== columnKey) return '';
     return state.direction === 'asc' ? '▲' : state.direction === 'desc' ? '▼' : '';
   }
@@ -289,7 +433,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   protected onToggleColumnVisibility(key: string): void {
     this.columnState.update((state) =>
-      state.map((entry) => (entry.key === key ? { ...entry, hidden: !entry.hidden } : entry)),
+      state.map((entry) => (entry.key === key ? { ...entry, hidden: !entry.hidden, hiddenIsExplicit: true } : entry)),
     );
   }
 
@@ -350,26 +494,52 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     return Number.isNaN(parsed) ? DEFAULT_COLUMN_WIDTH_PX : parsed;
   }
 
+  /** Formats offered in the Export menu — every format unless `exportFormats()` restricts them. */
+  protected readonly visibleExportFormats = computed(() => this.exportFormats() ?? ALL_EXPORT_FORMATS);
+
+  /** The currently-selected format radio — defaults to the first available format. */
+  protected readonly selectedExportFormat = computed<ExportFormat | null>(
+    () => this.selectedExportFormatOverride() ?? this.visibleExportFormats()[0] ?? null,
+  );
+
+  protected exportFormatLabel(format: ExportFormat): string {
+    return EXPORT_FORMAT_LABELS[format];
+  }
+
+  protected exportFormatIcon(format: ExportFormat): string {
+    return EXPORT_FORMAT_ICONS[format];
+  }
+
   protected toggleExportMenu(): void {
     this.isExportMenuOpen.update((open) => !open);
   }
 
-  protected onExportScopeChange(event: Event): void {
-    this.exportScope.set((event.target as HTMLSelectElement).value as ExportScope);
+  protected onExportScopeSelect(scope: ExportScope): void {
+    this.exportScope.set(scope);
+  }
+
+  protected onExportFormatSelect(format: ExportFormat): void {
+    this.selectedExportFormatOverride.set(format);
   }
 
   /**
    * Exports only the currently visible columns (hidden ones are already excluded from
    * `visibleColumns()`), and either the current page or every filtered/sorted row
-   * (`sortedData()` — filters and sort already applied), per `exportScope()`.
+   * (`sortedData()` — filters and sort already applied), per `exportScope()`, in the
+   * currently-selected `selectedExportFormat()` — triggered by the panel's explicit Export
+   * button, per export-panel-redesign-and-dealer-ledger-filename-17-09-2026-06_35_AM.md
+   * (selecting a scope/format radio no longer exports immediately by itself).
    */
-  protected onExport(format: ExportFormat): void {
+  protected onExportClick(): void {
+    const format = this.selectedExportFormat();
+    if (!format) return;
+
     const columns: ExportColumn<T>[] = this.visibleColumns().map((column) => ({
       key: column.key,
       header: column.header,
     }));
     const rows = this.exportScope() === 'currentPage' ? this.pagedData() : this.sortedData();
-    const filename = this.tableId();
+    const filename = this.exportFilename() ?? this.tableId();
 
     try {
       switch (format) {
@@ -383,7 +553,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
           this.exportService.print(rows, columns, this.title() || filename);
           break;
         case 'pdf':
-          this.exportService.exportToPdf(rows, columns, filename);
+          this.exportService.exportToPdf(rows, columns, filename, this.title() || undefined);
           break;
       }
       this.exportError.set(null);
@@ -435,19 +605,39 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     }
   }
 
+  /**
+   * Restarts client-side pagination at page 1 — for a consumer-triggered wholesale
+   * dataset replacement (e.g. a Reset action), as distinct from the clamp-down effect
+   * below (which only ever reduces the current page when it falls out of range after an
+   * organic shrink, e.g. sort/search). Call via a `viewChild` reference
+   * (spec-table-reset-pagination.md), mirroring this codebase's existing
+   * `resetFilters()`-via-`viewChild` pattern. No-op in server-side pagination mode, where
+   * the consumer's own `page` input is the sole source of truth for the current page.
+   */
+  resetPagination(): void {
+    this.currentPage.set(1);
+  }
+
   protected goToPreviousPage(): void {
-    this.currentPage.update((page) => Math.max(1, page - 1));
+    this.goToPage(this.effectiveCurrentPage() - 1);
   }
 
   protected goToNextPage(): void {
-    this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
+    this.goToPage(this.effectiveCurrentPage() + 1);
   }
 
-  protected onPageSizeChange(event: Event): void {
-    const size = Number((event.target as HTMLSelectElement).value);
-    this.pageSize.set(size);
-    this.currentPage.set(1);
+  /** Jumps directly to a page number, from the numbered pagination control. */
+  protected goToPage(page: number): void {
+    const target = Math.min(Math.max(1, page), this.totalPages());
+    // Server-paginated: this table isn't holding the other pages — ask the consumer to
+    // fetch the requested page instead of slicing locally.
+    if (this.isServerPaginated()) {
+      this.pageChange.emit(target);
+      return;
+    }
+    this.currentPage.set(target);
   }
+
 
   private buildDefaultColumnState(columns: TableColumn<T>[]): TableColumnState[] {
     return columns.map((column) => ({
@@ -456,6 +646,46 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
       width: column.width ?? null,
       pinned: column.pinned ?? null,
     }));
+  }
+
+  /**
+   * Re-syncs `hidden` from each definition's own default for any column the user hasn't
+   * explicitly toggled (`hiddenIsExplicit`), and appends any key present in `definitions`
+   * but not yet in `columnState` — column-hidden-default-not-applied-when-columns-change-after-init-17-09-2026-06_25_AM.md.
+   * A no-op (returns the same array reference) when nothing actually needs to change, so
+   * this doesn't retrigger persistence/re-render on every unrelated `columns()` recompute.
+   */
+  private syncColumnStateWithDefinitions(definitions: TableColumn<T>[]): void {
+    const definitionsByKey = new Map(definitions.map((definition) => [definition.key, definition]));
+
+    this.columnState.update((state) => {
+      let changed = false;
+
+      const synced = state.map((entry) => {
+        const definition = definitionsByKey.get(entry.key as Extract<keyof T, string>);
+        if (!definition || entry.hiddenIsExplicit) return entry;
+
+        const defaultHidden = definition.hidden ?? false;
+        if (entry.hidden === defaultHidden) return entry;
+
+        changed = true;
+        return { ...entry, hidden: defaultHidden };
+      });
+
+      const existingKeys = new Set(synced.map((entry) => entry.key));
+      for (const definition of definitions) {
+        if (existingKeys.has(definition.key)) continue;
+        changed = true;
+        synced.push({
+          key: definition.key,
+          hidden: definition.hidden ?? false,
+          width: definition.width ?? null,
+          pinned: definition.pinned ?? null,
+        });
+      }
+
+      return changed ? synced : state;
+    });
   }
 
   /**
@@ -488,8 +718,19 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     return next;
   }
 
+  /**
+   * Versioned so that a backend-driven default-visibility change (e.g. `isDefault` per
+   * effective-columns-shape-change-17-09-2026-05_41_AM.md) can be rolled out without stale
+   * persisted `hidden` values from before that concept existed silently overriding the new
+   * defaults forever — column-picker-and-export-panel-fixes-17-09-2026-05_50_AM.md. Bumping
+   * this suffix invalidates every previously-persisted column state once; normal
+   * persistence (including future manual show/hide/reorder/pin choices) resumes from a
+   * fresh, backend-correct baseline.
+   */
+  private static readonly COLUMN_STATE_STORAGE_VERSION = 2;
+
   private columnStorageKey(): string {
-    return `data-table:${this.tableId()}:columns`;
+    return `data-table:${this.tableId()}:columns:v${DataTableComponent.COLUMN_STATE_STORAGE_VERSION}`;
   }
 
   private readPersistedColumnState(): TableColumnState[] | null {

@@ -1,11 +1,8 @@
-// TODO: replace literal values with design tokens (CSS custom properties) once the
-// Shared styling/theming layer exists (Engineering Standards §6) — no token system exists
-// in this repo yet, so plain values are used for now, matching the rest of the codebase.
-
 .report-search-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  // Overrides Bootstrap's grid gutter var directly (rather than relying on the `.gx-4`
+  // utility class, whose rule order vs. `.g-3` isn't guaranteed) so card fields get
+  // visible breathing room between their borders.
+  --bs-gutter-x: 1.5rem;
 }
 
 .report-search-bar__field {
@@ -14,9 +11,91 @@
   gap: 0.25rem;
 }
 
-.report-search-bar__error {
-  flex-basis: 100%;
-  color: #b00020;
+// Optional section heading above the identity-fields/date-range groups — e.g. "Dealer
+// Details"/"Specify Date Range" — warranty-cost-report-dealer-ledger-style-page-17-09-2026-07_28_AM.md.
+// `null` (default) for every existing consumer, so nothing renders unless explicitly set.
+.report-search-bar__section-label {
+  margin: 0 0 0.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+// Single row, three columns, one shared border — header-center-align-single-row-identity-fields-17-09-2026-06_05_AM.md.
+// Replaced the three individually-bordered cards this mode previously rendered
+// (identity-fields-as-cards-16-09-2026-02_14_PM.md).
+.report-search-bar__identity-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.report-search-bar__identity-col {
+  flex: 1 1 0;
+  min-width: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.report-search-bar__card-label {
+  font-size: 0.6875rem;
+  color: #666;
   margin: 0;
+}
+
+.report-search-bar__card-value {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+// Single line: label, then From/picker/To/picker inline — date-range-single-line-17-09-2026-06_10_AM.md.
+// `flex-wrap: nowrap` (rather than the default `wrap` every other field row uses) keeps
+// "From [picker] To [picker]" on one line instead of stacking the two pickers.
+.report-search-bar__date-range {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+}
+
+// Overrides Bootstrap's `.form-label` size/margin (meant for a label-above-input layout)
+// so this inline label sits level with the pickers instead of above them — see
+// date-range-label-grey-show-report-button-17-09-2026-06_15_AM.md.
+.report-search-bar__date-range-label {
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin: 0;
+  margin-top: 0.15rem;
+  font-size: 0.8125rem;
+}
+
+.report-search-bar__date-range-inputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.report-search-bar__date-range-part-label {
+  margin: 0;
+  white-space: nowrap;
   font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+// Shorter than Bootstrap's default (non-small) form-control sizing — see
+// shorter-date-pickers-and-grey-show-report-bg-17-09-2026-06_18_AM.md.
+.report-search-bar__date-range-inputs .form-control {
+  width: auto;
+  min-width: 9rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8125rem;
 }

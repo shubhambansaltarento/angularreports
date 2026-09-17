@@ -15,4 +15,10 @@ export interface ReportConfig {
   route: string;
   /** False until the report's table/data source has been built against confirmed source data. */
   hasTable: boolean;
+  /**
+   * True only once the report is wired to a real, confirmed-live `/config`+`/data` API
+   * (not just scaffolded with a table/columns). Drives Reports Home's "Available Reports"
+   * vs. "Reports in Progress" grouping — three-section-status-grouping-17-09-2026-09_10_AM.md.
+   */
+  apiIntegrated: boolean;
 }

@@ -1,0 +1,27 @@
+<div class="warranty-reconciliation-list">
+  <header class="warranty-reconciliation-list__header">
+    <h1>{{ title }}</h1>
+  </header>
+
+  <app-breadcrumb [currentLabel]="title" />
+
+  <app-warranty-reconciliation-filter [config]="config()" (searched)="onSearch($event)" />
+
+  @if (store.error(); as error) {
+    <div class="warranty-reconciliation-list__error" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" (click)="store.refresh()">Retry</button>
+    </div>
+  }
+
+  @if (store.hasSearched()) {
+    <app-warranty-reconciliation-table
+      class="warranty-reconciliation-list__table"
+      [rows]="store.data()"
+      [loading]="store.loading()"
+      [exportFormats]="exportFormats()"
+      [effectiveColumns]="store.effectiveColumns()"
+      [dealerName]="config()?.context?.dealerDescription ?? null"
+    />
+  }
+</div>
