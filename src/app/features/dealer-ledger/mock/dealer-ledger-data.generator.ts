@@ -82,6 +82,12 @@ export function generateDealerLedgerRows(count = 50): DealerLedgerRow[] {
       text: `${docType} for ${dealer.dealerName}`,
       qnt: randomInt(1, 20),
       amt: 0, // computed by computeRunningAmounts below
+      oeRefNo: '',
+      spRefNo: '',
+      acRefNo: '',
+      evRefNo: '',
+      acwshRefNo: '',
+      cblRefNo: '',
     };
   });
 

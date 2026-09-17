@@ -2,6 +2,7 @@
   <label class="data-table-column-settings__search">
     <input
       type="text"
+      class="form-control form-control-sm"
       placeholder="Search columns…"
       [value]="searchTerm()"
       (input)="onSearchInput($event)"
@@ -9,17 +10,23 @@
     />
   </label>
 
-  <ul class="data-table-column-settings__list">
+  <ul class="data-table-column-settings__list list-unstyled mb-0">
     @for (column of filteredColumns(); track column.key) {
       <li class="data-table-column-settings__item">
-        <label class="data-table-column-settings__visibility">
-          <input type="checkbox" [checked]="!column.hidden" (change)="toggleVisibility.emit(column.key)" />
-          <span>{{ column.header }}</span>
+        <label class="data-table-column-settings__visibility form-check">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            [checked]="!column.hidden"
+            (change)="toggleVisibility.emit(column.key)"
+          />
+          <span class="form-check-label">{{ column.header }}</span>
         </label>
 
         <div class="data-table-column-settings__actions">
           <button
             type="button"
+            class="btn btn-sm btn-outline-secondary"
             [disabled]="isFirst(column.key)"
             (click)="moveUp.emit(column.key)"
             aria-label="Move column up"
@@ -28,6 +35,7 @@
           </button>
           <button
             type="button"
+            class="btn btn-sm btn-outline-secondary"
             [disabled]="isLast(column.key)"
             (click)="moveDown.emit(column.key)"
             aria-label="Move column down"
@@ -35,7 +43,7 @@
             ↓
           </button>
           <select
-            class="data-table-column-settings__pin"
+            class="data-table-column-settings__pin form-select form-select-sm"
             [value]="column.pinned ?? ''"
             (change)="onPinChange(column.key, $event)"
             aria-label="Pin column"
@@ -49,7 +57,7 @@
     }
   </ul>
 
-  <button type="button" class="data-table-column-settings__restore" (click)="restoreDefaults.emit()">
+  <button type="button" class="data-table-column-settings__restore btn btn-sm btn-outline-secondary" (click)="restoreDefaults.emit()">
     Restore Default
   </button>
 </div>

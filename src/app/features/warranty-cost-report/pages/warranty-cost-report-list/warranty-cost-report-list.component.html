@@ -1,0 +1,27 @@
+<div class="warranty-cost-report-list">
+  <header class="warranty-cost-report-list__header">
+    <h1>{{ title }}</h1>
+  </header>
+
+  <app-breadcrumb [currentLabel]="title" />
+
+  <app-warranty-cost-report-filter [config]="config()" (searched)="onSearch($event)" />
+
+  @if (store.error(); as error) {
+    <div class="warranty-cost-report-list__error" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" (click)="store.refresh()">Retry</button>
+    </div>
+  }
+
+  @if (store.hasSearched()) {
+    <app-warranty-cost-table
+      class="warranty-cost-report-list__table"
+      [rows]="store.data()"
+      [loading]="store.loading()"
+      [exportFormats]="exportFormats()"
+      [effectiveColumns]="store.effectiveColumns()"
+      [dealerName]="config()?.context?.dealerDescription ?? null"
+    />
+  }
+</div>

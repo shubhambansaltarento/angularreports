@@ -14,11 +14,14 @@ import { ReportConfig } from './shared/models/report-config.model';
  * `ReportSearchOnlyPageComponent` (search parameters only, per the Multi-Report
  * Framework Specification §6/§13), with that report's own config supplying the page's
  * title/description via route `data` (bound by `withComponentInputBinding()`, app.config.ts).
+ *
+ * Warranty Cost Report is NOT in this list — it has its own dedicated page/route matching
+ * its real SAP reference form, per
+ * warranty-cost-report-dealer-ledger-style-page-17-09-2026-07_28_AM.md (still no table:
+ * its data source remains unconfirmed, per `WARRANTY_COST_REPORT_CONFIG.hasTable`).
  */
 const SEARCH_ONLY_REPORT_CONFIGS: ReportConfig[] = [
-  WARRANTY_RECONCILIATION_REPORT_CONFIG,
   WARRANTY_LABOUR_TAX_INVOICE_REPORT_CONFIG,
-  WARRANTY_COST_REPORT_CONFIG,
   PARTS_PACKING_LIST_REPORT_CONFIG,
   VOR_PRINT_REPORT_CONFIG,
   PQM_REPORT_CONFIG,
@@ -43,6 +46,20 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/goods-acknowledgement/goods-acknowledgement.routes').then(
         (m) => m.GOODS_ACKNOWLEDGEMENT_ROUTES,
+      ),
+  },
+  {
+    path: WARRANTY_COST_REPORT_CONFIG.route,
+    loadChildren: () =>
+      import('./features/warranty-cost-report/warranty-cost-report.routes').then(
+        (m) => m.WARRANTY_COST_REPORT_ROUTES,
+      ),
+  },
+  {
+    path: WARRANTY_RECONCILIATION_REPORT_CONFIG.route,
+    loadChildren: () =>
+      import('./features/warranty-reconciliation/warranty-reconciliation.routes').then(
+        (m) => m.WARRANTY_RECONCILIATION_ROUTES,
       ),
   },
   ...SEARCH_ONLY_REPORT_CONFIGS.map((config) => ({

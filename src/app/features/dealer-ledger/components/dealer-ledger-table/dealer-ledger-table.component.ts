@@ -1,38 +1,24 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, viewChild } from '@angular/core';
 import { DataTableCellTemplateDirective } from '../../../../shared/ui/data-table/data-table-cell-template.directive';
 import { DataTableComponent } from '../../../../shared/ui/data-table/data-table.component';
-import { TableColumn } from '../../../../shared/ui/data-table/models/table-column.model';
-import { DEALER_LEDGER_DEFAULT_PAGE_SIZE } from '../../constants/dealer-ledger.constants';
+import { ExportFormat } from '../../../../shared/services/export/models/export-format.model';
+import { buildReportExportFilename } from '../../../../shared/services/export/utils/report-export-filename';
+import { DEALER_LEDGER_DEFAULT_COLUMNS, toDealerLedgerColumns } from '../../constants/dealer-ledger-column-definitions';
+import { DEALER_LEDGER_DEFAULT_PAGE_SIZE, DEALER_LEDGER_REPORT_KEY } from '../../constants/dealer-ledger.constants';
+import { DealerLedgerEffectiveColumn } from '../../models/dealer-ledger-api-response.model';
 import { DealerLedgerRow } from '../../models/dealer-ledger-row.model';
-
-const DEALER_LEDGER_TABLE_COLUMNS: TableColumn<DealerLedgerRow>[] = [
-  { key: 'dealerCode', header: 'Dealer Code', sortable: true },
-  { key: 'docType', header: 'Doc. Type', sortable: true },
-  { key: 'docReferenceNo', header: 'Doc. Reference No.', sortable: true },
-  { key: 'docDate', header: 'Doc. Date', sortable: true },
-  { key: 'assignment', header: 'Assignment', sortable: true },
-  { key: 'cca', header: 'CCA', sortable: true },
-  { key: 'textDec', header: 'Text Dec.', sortable: true },
-  { key: 'narrationVehDescription', header: 'Narration Veh. Description', sortable: true },
-  { key: 'debitAmount', header: 'Debit Amount', sortable: true, align: 'end' },
-  { key: 'creditAmount', header: 'Credit Amount', sortable: true, align: 'end' },
-  { key: 'dealerName', header: 'Dealer Name', sortable: true },
-  { key: 'dealerAddress', header: 'Dealer Address', sortable: true },
-  { key: 'currency', header: 'Currency', sortable: true },
-  { key: 'text', header: 'Text', sortable: true },
-  { key: 'qnt', header: 'QNT.', sortable: true, align: 'end' },
-  { key: 'amt', header: 'Amt', sortable: true, align: 'end' },
-];
 
 /**
  * Presentational table for Dealer Ledger entries — composes the shared, completely
  * generic `DataTableComponent` (shared/ui/data-table) with Dealer-Ledger-specific column
  * definitions, cell formatting (currency/date), per-cell tooltips, and empty-state copy.
  * Owns no data-fetching logic itself; `rows`/`loading` are supplied by the list page from
- * `DealerLedgerStore`. Loading skeleton, error-free "no data" state, sorting, trackBy, and
- * OnPush/Signals change detection are all inherited from the shared table — nothing here
- * duplicates them.
+ * `DealerLedgerStore`. The data API is not paginated — `rows` is always the full matching
+ * result set (api-not-paginated-client-side-pagination-16-09-2026-04_35_PM.md) — so pagination/sorting
+ * are entirely the shared table's own default client-side behavior; nothing here overrides
+ * it. Loading skeleton, error-free "no data" state, and OnPush/Signals change detection are
+ * likewise all inherited from the shared table.
  */
 @Component({
   selector: 'app-dealer-ledger-table',
@@ -45,7 +31,51 @@ export class DealerLedgerTableComponent {
   readonly rows = input<DealerLedgerRow[]>([]);
   readonly loading = input(false);
 
-  protected readonly columns = DEALER_LEDGER_TABLE_COLUMNS;
-  /** Matches the store's own page size — the store already returns one page of this size. */
+  /** Disables the table header's Reset control — "no filter is currently active", per the filter panel. */
+  readonly resetDisabled = input(false);
+
+  /** Fires when the table header's Reset control is clicked — the list page clears filters/checkboxes in response. */
+  readonly reset = output<void>();
+
+  /** Restricts the Export menu to these formats (mapped from the config API's `export.formats`) — `null` shows every format. */
+  readonly exportFormats = input<ExportFormat[] | null>(null);
+
+  /**
+   * The `/data` response's `effectiveColumns` (effective-columns-drive-table-headers-16-09-2026-03_59_PM.md,
+   * effective-columns-shape-change-17-09-2026-05_41_AM.md) — drives the table's column
+   * structure/order/default-visibility once available. `null` before any real response has
+   * supplied one, in which case the default hardcoded column set is used.
+   */
+  readonly effectiveColumns = input<DealerLedgerEffectiveColumn[] | null>(null);
+
+  /** The current dealer's name — used to build the export filename below. */
+  readonly dealerName = input<string | null>(null);
+
+  /**
+   * `DEALER_LEDGER_{dealer name}_{timestamp}-report` — overrides the shared table's
+   * default `tableId()`-based export filename, per
+   * export-panel-redesign-and-dealer-ledger-filename-17-09-2026-06_35_AM.md and
+   * generic-report-export-filename-17-09-2026-06_46_AM.md (the underlying builder is
+   * report-agnostic; any other report calls it with its own report-key constant).
+   */
+  protected readonly exportFilename = computed(() => buildReportExportFilename(DEALER_LEDGER_REPORT_KEY, this.dealerName()));
+
+  protected readonly columns = computed(() => {
+    const effectiveColumns = this.effectiveColumns();
+    return effectiveColumns ? toDealerLedgerColumns(effectiveColumns) : DEALER_LEDGER_DEFAULT_COLUMNS;
+  });
+
+  /**
+   * The API is not paginated — one request returns the full matching result set
+   * (api-not-paginated-client-side-pagination-16-09-2026-04_35_PM.md) — so pagination is entirely the
+   * shared table's own client-side concern, using this as its initial page size.
+   */
   protected readonly initialPageSize = DEALER_LEDGER_DEFAULT_PAGE_SIZE;
+
+  private readonly dataTable = viewChild.required(DataTableComponent);
+
+  /** Restarts the underlying table's pagination at page 1 — called by the list page after Reset (spec-table-reset-pagination.md). */
+  resetPagination(): void {
+    this.dataTable().resetPagination();
+  }
 }

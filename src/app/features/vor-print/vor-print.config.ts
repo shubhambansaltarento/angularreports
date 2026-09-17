@@ -7,4 +7,5 @@ export const VOR_PRINT_REPORT_CONFIG: ReportConfig = {
   route: 'vor-print',
   // Search parameters only for now — table columns are pending confirmed source data.
   hasTable: false,
+  apiIntegrated: false,
 };

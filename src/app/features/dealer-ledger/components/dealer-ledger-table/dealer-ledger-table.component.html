@@ -3,10 +3,15 @@
   title="Dealer Ledger Entries"
   trackByKey="id"
   emptyStateMessage="No ledger entries match the current filters."
-  [columns]="columns"
+  [columns]="columns()"
   [data]="rows()"
   [loading]="loading()"
   [initialPageSize]="initialPageSize"
+  [showReset]="true"
+  [resetDisabled]="resetDisabled()"
+  [exportFormats]="exportFormats()"
+  [exportFilename]="exportFilename()"
+  (resetClicked)="reset.emit()"
 >
   <ng-template dataTableCell="docDate" let-row>
     <span [title]="$any(row).docDate">{{ $any(row).docDate | date }}</span>

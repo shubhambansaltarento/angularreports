@@ -1,0 +1,19 @@
+<div class="warranty-cost-report-filter">
+  <app-report-search-bar
+    [initialValue]="initialValue()"
+    [readonlyDealerFields]="true"
+    [stacked]="true"
+    [showCompanyCode]="false"
+  />
+
+  <div class="warranty-cost-report-filter__submit-row">
+    <button
+      type="button"
+      class="warranty-cost-report-filter__submit-button btn btn-sm btn-outline-secondary"
+      [disabled]="searchBar().isDateRangeInvalid()"
+      (click)="onSubmit()"
+    >
+      Show Report
+    </button>
+  </div>
+</div>

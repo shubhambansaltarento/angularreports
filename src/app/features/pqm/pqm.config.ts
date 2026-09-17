@@ -7,4 +7,5 @@ export const PQM_REPORT_CONFIG: ReportConfig = {
   route: 'pqm',
   // Search parameters only for now — table columns are pending confirmed source data.
   hasTable: false,
+  apiIntegrated: false,
 };

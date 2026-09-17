@@ -29,4 +29,11 @@ export interface DealerLedgerRow extends Record<string, unknown> {
   text: string;
   qnt: number;
   amt: number;
+  /** Only populated when the matching "Include Details" checkbox was checked — backend-adds-checkbox-support-16-09-2026-05_24_PM.md. */
+  oeRefNo: string;
+  spRefNo: string;
+  acRefNo: string;
+  evRefNo: string;
+  acwshRefNo: string;
+  cblRefNo: string;
 }

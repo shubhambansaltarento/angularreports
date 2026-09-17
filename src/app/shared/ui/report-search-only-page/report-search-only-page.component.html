@@ -1,19 +1,21 @@
-<section class="report-search-only-page">
+<section class="report-search-only-page container-fluid p-0">
   <header class="report-search-only-page__header">
     <h1>{{ title() }}</h1>
     @if (description()) {
-      <p>{{ description() }}</p>
+      <p class="text-muted">{{ description() }}</p>
     }
   </header>
 
+  <app-breadcrumb [currentLabel]="title()" />
+
   <app-report-search-bar [initialValue]="initialValue()" />
 
-  <div class="report-search-only-page__actions">
-    <button type="button" (click)="onSearch()">Search</button>
-    <button type="button" (click)="onReset()">Reset</button>
+  <div class="report-search-only-page__actions d-flex gap-2">
+    <button type="button" class="btn btn-primary" (click)="onSearch()">Search</button>
+    <button type="button" class="btn btn-outline-secondary" (click)="onReset()">Reset</button>
   </div>
 
-  <p class="report-search-only-page__placeholder" role="status">
+  <p class="report-search-only-page__placeholder text-muted fst-italic" role="status">
     The table for "{{ title() }}" is not yet available — its columns are pending confirmed source data.
   </p>
 </section>

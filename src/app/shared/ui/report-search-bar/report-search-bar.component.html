@@ -1,35 +1,108 @@
-<div class="report-search-bar" [formGroup]="form">
-  <div class="report-search-bar__field">
-    <label for="report-search-bar-dealer-code">Dealer Code</label>
-    <input id="report-search-bar-dealer-code" type="text" formControlName="dealerCode" placeholder="Dealer code" />
-  </div>
+<div class="report-search-bar row g-3" [formGroup]="form">
+  @if (identitySectionLabel()) {
+    <h2 class="report-search-bar__section-label col-12">{{ identitySectionLabel() }}</h2>
+  }
+  @if (readonlyDealerFields()) {
+    <!-- Single row, three columns, two rows (label above value) per column — header-center-align-single-row-identity-fields-17-09-2026-06_05_AM.md.
+         Replaces the three separately-bordered cards this mode previously rendered. -->
+    <div class="report-search-bar__identity-group col-12">
+      <div class="report-search-bar__identity-col">
+        <label class="report-search-bar__card-label" for="report-search-bar-dealer-code">Dealer Code</label>
+        <p id="report-search-bar-dealer-code" class="report-search-bar__card-value">
+          {{ form.controls.dealerCode.value }}
+        </p>
+      </div>
+      <div class="report-search-bar__identity-col">
+        <label class="report-search-bar__card-label" for="report-search-bar-dealer-description">Dealer Description</label>
+        <p id="report-search-bar-dealer-description" class="report-search-bar__card-value">
+          {{ form.controls.dealerDescription.value }}
+        </p>
+      </div>
+      @if (showCompanyCode()) {
+        <div class="report-search-bar__identity-col">
+          <label class="report-search-bar__card-label" for="report-search-bar-company-code">Company Code</label>
+          <p id="report-search-bar-company-code" class="report-search-bar__card-value">
+            {{ form.controls.companyCode.value }}
+          </p>
+        </div>
+      }
+    </div>
+  } @else {
+    <div
+      class="report-search-bar__field col-12"
+      [class.col-sm-6]="!stacked()"
+      [class.col-lg-2]="!stacked()"
+      [class.col-md-4]="stacked()"
+    >
+      <label class="form-label" for="report-search-bar-dealer-code">Dealer Code</label>
+      <input
+        id="report-search-bar-dealer-code"
+        type="text"
+        class="form-control"
+        formControlName="dealerCode"
+        placeholder="Dealer code"
+      />
+    </div>
 
-  <div class="report-search-bar__field">
-    <label for="report-search-bar-dealer-description">Dealer Description</label>
-    <input
-      id="report-search-bar-dealer-description"
-      type="text"
-      formControlName="dealerDescription"
-      placeholder="Dealer description"
-    />
-  </div>
+    <div
+      class="report-search-bar__field col-12"
+      [class.col-sm-6]="!stacked()"
+      [class.col-lg-3]="!stacked()"
+      [class.col-md-4]="stacked()"
+    >
+      <label class="form-label" for="report-search-bar-dealer-description">Dealer Description</label>
+      <input
+        id="report-search-bar-dealer-description"
+        type="text"
+        class="form-control"
+        formControlName="dealerDescription"
+        placeholder="Dealer description"
+      />
+    </div>
 
-  <div class="report-search-bar__field">
-    <label for="report-search-bar-company-code">Company Code</label>
-    <input id="report-search-bar-company-code" type="text" formControlName="companyCode" placeholder="Company code" />
-  </div>
+    @if (showCompanyCode()) {
+      <div
+        class="report-search-bar__field col-12"
+        [class.col-sm-6]="!stacked()"
+        [class.col-lg-2]="!stacked()"
+        [class.col-md-4]="stacked()"
+      >
+        <label class="form-label" for="report-search-bar-company-code">Company Code</label>
+        <input
+          id="report-search-bar-company-code"
+          type="text"
+          class="form-control"
+          formControlName="companyCode"
+          placeholder="Company code"
+        />
+      </div>
+    }
+  }
 
-  <div class="report-search-bar__field">
-    <label for="report-search-bar-date-from">Date From</label>
-    <input id="report-search-bar-date-from" type="date" formControlName="dateFrom" />
-  </div>
+  @if (showDateRange()) {
+    @if (dateSectionLabel()) {
+      <h2 class="report-search-bar__section-label col-12">{{ dateSectionLabel() }}</h2>
+    }
 
-  <div class="report-search-bar__field">
-    <label for="report-search-bar-date-to">Date To</label>
-    <input id="report-search-bar-date-to" type="date" formControlName="dateTo" />
-  </div>
+    <!-- Single line: "Date Range" label, then From/To each with their own accessible
+         label, next to their own picker — date-range-single-line-17-09-2026-06_10_AM.md.
+         Replaces the previous two separately-boxed Date From/Date To fields. Full-width
+         (col-12, no narrower breakpoint constraint) with flex-wrap: nowrap on the
+         inputs group so the whole row stays on one line rather than wrapping. -->
+    <div class="report-search-bar__field report-search-bar__date-range col-12">
+      <span class="form-label report-search-bar__date-range-label">Date Range</span>
+      <div class="report-search-bar__date-range-inputs">
+        <label class="report-search-bar__date-range-part-label" for="report-search-bar-date-from">From</label>
+        <input id="report-search-bar-date-from" type="date" class="form-control" formControlName="dateFrom" />
+        <label class="report-search-bar__date-range-part-label" for="report-search-bar-date-to">To</label>
+        <input id="report-search-bar-date-to" type="date" class="form-control" formControlName="dateTo" />
+      </div>
+    </div>
 
-  @if (isDateRangeInvalid()) {
-    <p class="report-search-bar__error" role="alert">"Date From" must not be after "Date To".</p>
+    @if (isDateRangeInvalid()) {
+      <p class="report-search-bar__error alert alert-danger col-12 mb-0 py-2" role="alert">
+        "Date From" must not be after "Date To".
+      </p>
+    }
   }
 </div>

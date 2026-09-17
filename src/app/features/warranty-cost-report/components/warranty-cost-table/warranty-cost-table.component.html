@@ -1,0 +1,16 @@
+<app-data-table
+  tableId="warranty-cost-report"
+  title="Warranty Cost Report"
+  trackByKey="id"
+  emptyStateMessage="No warranty cost entries match the current filters."
+  [columns]="columns()"
+  [data]="rows()"
+  [loading]="loading()"
+  [initialPageSize]="initialPageSize"
+  [exportFormats]="exportFormats()"
+  [exportFilename]="exportFilename()"
+>
+  <ng-template dataTableCell="orderDate" let-row>
+    <span [title]="$any(row).orderDate">{{ $any(row).orderDate | date }}</span>
+  </ng-template>
+</app-data-table>

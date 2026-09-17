@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { REPORTS_CATALOG } from './reports.registry';
 
@@ -18,5 +18,14 @@ import { REPORTS_CATALOG } from './reports.registry';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReportsHomeComponent {
-  protected readonly reports = REPORTS_CATALOG;
+  /**
+   * Two status-derived groups — no report is named/hardcoded here, each report's own
+   * `apiIntegrated` flag decides its section
+   * (three-section-status-grouping-17-09-2026-09_10_AM.md, revised to two headings):
+   * - In Progress: fully built against a real, live API.
+   * - To Be Picked: everything else, including reports with a scaffolded table but no
+   *   live data source yet (e.g. Goods Acknowledgement) and pure search-only placeholders.
+   */
+  protected readonly inProgressReports = computed(() => REPORTS_CATALOG.filter((report) => report.apiIntegrated));
+  protected readonly toBePickedReports = computed(() => REPORTS_CATALOG.filter((report) => !report.apiIntegrated));
 }

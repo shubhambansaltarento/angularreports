@@ -1,6 +1,3 @@
-// TODO: replace literal values with design tokens (CSS custom properties) once the
-// Shared styling/theming layer exists (Engineering Standards §6).
-
 :host {
   display: block;
 }
@@ -11,17 +8,12 @@
   gap: 1rem;
 }
 
-.report-search-only-page__header p {
-  margin: 0.25rem 0 0;
-  color: #666;
-}
+// Matches Dealer Ledger's header style — breadcrumbs-and-dealer-ledger-style-headers-17-09-2026-07_17_AM.md.
+.report-search-only-page__header {
+  text-align: center;
 
-.report-search-only-page__actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.report-search-only-page__placeholder {
-  color: #666;
-  font-style: italic;
+  h1 {
+    margin: 0;
+    font-size: 1.375rem;
+  }
 }

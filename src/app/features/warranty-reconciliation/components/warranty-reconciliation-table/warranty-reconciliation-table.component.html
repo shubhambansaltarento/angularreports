@@ -1,0 +1,16 @@
+<app-data-table
+  tableId="warranty-reconciliation"
+  title="Warranty Reconciliation"
+  trackByKey="dealerCode"
+  emptyStateMessage="No warranty reconciliation entries match the current filters."
+  [columns]="columns()"
+  [data]="rows()"
+  [loading]="loading()"
+  [initialPageSize]="initialPageSize"
+  [exportFormats]="exportFormats()"
+  [exportFilename]="exportFilename()"
+>
+  <ng-template dataTableCell="reconciliationDate" let-row>
+    <span [title]="$any(row).reconciliationDate">{{ $any(row).reconciliationDate | date }}</span>
+  </ng-template>
+</app-data-table>
