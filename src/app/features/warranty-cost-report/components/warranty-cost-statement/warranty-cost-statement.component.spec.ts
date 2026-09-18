@@ -93,7 +93,7 @@ describe('WarrantyCostStatementComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('AUTHORISED SIGNATORY');
   });
 
-  it('renders an additional green memo row between the header and the dealer row, with the shared memo/order fields — the existing line-item rows are unaffected and keep showing their own values', () => {
+  it('renders a green memo row between the header and the dealer row, with the shared memo/order fields', () => {
     const fixture = createComponent();
 
     const memoRow: HTMLTableRowElement = fixture.nativeElement.querySelector('.warranty-cost-statement__memo-row');
@@ -105,12 +105,33 @@ describe('WarrantyCostStatementComponent', () => {
 
     const dealerRow: HTMLTableRowElement = fixture.nativeElement.querySelector('.warranty-cost-statement__dealer-row');
     expect(memoRow.nextElementSibling).toBe(dealerRow);
+  });
 
-    // Line-item rows are unchanged — they still show their own cnMemoNo/orderNum etc.
-    // tbody order: memo row, dealer row, line item(s), totals row.
+  it('renders exactly the 11 fixed columns (S.NO/Part Number/Description/Quantity/NDP Rate/Excise/Sales Tax/Labour/Octroi/Service Tax/Total Cost), with no memo/order columns', () => {
+    const fixture = createComponent();
+
+    const headers: string[] = Array.from(fixture.nativeElement.querySelectorAll('thead th')).map(
+      (th) => (th as HTMLElement).textContent?.trim(),
+    );
+    expect(headers).toEqual([
+      'S.NO',
+      'PART NUMBER',
+      'DESCRIPTION',
+      'QUANTITY',
+      'NDP RATE',
+      'EXCISE',
+      'SALES TAX',
+      'LABOUR',
+      'OCTROI',
+      'SERVICE TAX',
+      'TOTAL COST',
+    ]);
+
+    // Line-item rows render Part Number/Description as separate cells, not memo/order columns.
     const bodyRows: NodeListOf<HTMLTableRowElement> = fixture.nativeElement.querySelectorAll('tbody tr');
     const lineItemRow = bodyRows[bodyRows.length - 2];
-    expect(lineItemRow.textContent).toContain('91048544');
-    expect(lineItemRow.textContent).toContain('64162944');
+    expect(lineItemRow.querySelectorAll('td').length).toBe(11);
+    expect(lineItemRow.textContent).toContain('K6242080');
+    expect(lineItemRow.textContent).toContain('BATTERY PACK ASSY');
   });
 });
