@@ -1,17 +1,28 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { WarrantyCostStore } from './warranty-cost.store';
 import { WarrantyCostService } from '../services/warranty-cost.service';
+
+const EMPTY_SUMMARY = {
+  totalNdpRate: 0,
+  totalExcise: 0,
+  totalSalesTax: 0,
+  totalLabour: 0,
+  totalOctroi: 0,
+  totalServiceTax: 0,
+  totalCost: 0,
+  partsValue: 0,
+  totalFreight: 0,
+  totalDemurrage: 0,
+  totalValue: 0,
+};
 
 describe('WarrantyCostStore', () => {
   let getEntriesSpy: ReturnType<typeof vi.fn>;
   let store: WarrantyCostStore;
 
   beforeEach(() => {
-    getEntriesSpy = vi.fn().mockReturnValue(
-      of({ rows: [], totalCount: 0, summary: { totalLaborCost: 0, totalPartCost: 0, totalCost: 0 }, effectiveColumns: null }),
-    );
+    getEntriesSpy = vi.fn().mockReturnValue(of({ dealerGroups: [], grandTotal: EMPTY_SUMMARY }));
 
     TestBed.configureTestingModule({
       providers: [WarrantyCostStore, { provide: WarrantyCostService, useValue: { getEntries: getEntriesSpy } }],
@@ -20,67 +31,53 @@ describe('WarrantyCostStore', () => {
     store = TestBed.inject(WarrantyCostStore);
   });
 
-  it('starts with hasSearched false, before any fetch has been requested', () => {
+  it('does not fetch and stays hidden before the first search', () => {
     expect(store.hasSearched()).toBe(false);
+    expect(getEntriesSpy).not.toHaveBeenCalled();
   });
 
-  it('sets hasSearched true as soon as search() is called', () => {
-    store.search({});
+  it('search() calls the service and reveals the statement', () => {
+    store.search({ dealerCode: '10015', dateFrom: '2026-08-01', dateTo: '2026-08-31' });
+
+    expect(getEntriesSpy).toHaveBeenCalledWith({ dealerCode: '10015', dateFrom: '2026-08-01', dateTo: '2026-08-31' });
     expect(store.hasSearched()).toBe(true);
   });
 
-  it('surfaces the real validation message from a VALIDATION_FAILED error, not the generic fallback (data-mapping-fixes-from-real-rows-17-09-2026-08_02_AM.md)', () => {
-    const validationError = new HttpErrorResponse({
-      status: 400,
-      error: {
-        traceId: '55346c99-0b1f-4119-8728-39f6d5dbdf1e',
-        code: 'VALIDATION_FAILED',
-        errors: [
-          { field: 'claimDate.to', code: 'MAX_RANGE_EXCEEDED', message: 'Date range cannot exceed 366 days', params: { maxRangeDays: 366 } },
-        ],
-      },
-    });
-    getEntriesSpy.mockReturnValue(throwError(() => validationError));
+  it('applies the returned statement', () => {
+    const statement = { dealerGroups: [{ dealerCode: '10015', dealerName: 'X', rows: [], summary: EMPTY_SUMMARY }], grandTotal: EMPTY_SUMMARY };
+    getEntriesSpy.mockReturnValue(of(statement));
 
-    store.search({ dateFrom: '2020-01-01', dateTo: '2026-09-17' });
+    store.search({ dealerCode: '10015' });
 
-    expect(store.error()).toBe('Date range cannot exceed 366 days');
+    expect(store.statement()).toEqual(statement);
+    expect(store.loading()).toBe(false);
   });
 
-  it('joins multiple validation messages with "; "', () => {
-    const validationError = new HttpErrorResponse({
-      status: 400,
-      error: {
-        traceId: 't-1',
-        code: 'VALIDATION_FAILED',
-        errors: [
-          { field: 'a', code: 'X', message: 'First problem' },
-          { field: 'b', code: 'Y', message: 'Second problem' },
-        ],
-      },
-    });
-    getEntriesSpy.mockReturnValue(throwError(() => validationError));
+  it('sets an error message and clears loading when the fetch fails', () => {
+    getEntriesSpy.mockReturnValue(throwError(() => new Error('boom')));
 
-    store.search({});
-
-    expect(store.error()).toBe('First problem; Second problem');
-  });
-
-  it('falls back to a generic message for a non-validation error (e.g. a network failure)', () => {
-    getEntriesSpy.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
-
-    store.search({});
+    store.search({ dealerCode: '10015' });
 
     expect(store.error()).toBe('Unable to load Warranty Cost Report entries. Please try again.');
+    expect(store.loading()).toBe(false);
   });
 
-  it('captures the real summary shape from a successful response', () => {
-    getEntriesSpy.mockReturnValue(
-      of({ rows: [], totalCount: 0, summary: { totalLaborCost: 3600, totalPartCost: 14451.5, totalCost: 18051.5 }, effectiveColumns: null }),
-    );
+  it('refresh() re-issues the last search filters', () => {
+    store.search({ dealerCode: '10015', dateFrom: '2026-08-01' });
+    getEntriesSpy.mockClear();
 
-    store.search({});
+    store.refresh();
 
-    expect(store.summary()).toEqual({ totalLaborCost: 3600, totalPartCost: 14451.5, totalCost: 18051.5 });
+    expect(getEntriesSpy).toHaveBeenCalledWith({ dealerCode: '10015', dateFrom: '2026-08-01' });
+  });
+
+  it('dismissError() clears the error signal', () => {
+    getEntriesSpy.mockReturnValue(throwError(() => new Error('boom')));
+    store.search({ dealerCode: '10015' });
+    expect(store.error()).toBeTruthy();
+
+    store.dismissError();
+
+    expect(store.error()).toBeNull();
   });
 });

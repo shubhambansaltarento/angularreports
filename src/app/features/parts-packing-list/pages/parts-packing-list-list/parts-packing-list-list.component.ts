@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
+import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { PartsPackingListTableComponent } from '../../components/parts-packing-list-table/parts-packing-list-table.component';
 import { PartsPackingListFilterComponent } from '../../filters/parts-packing-list-filter/parts-packing-list-filter.component';
@@ -22,7 +23,7 @@ import { PartsPackingListStore } from '../../store/parts-packing-list.store';
  */
 @Component({
   selector: 'app-parts-packing-list-list',
-  imports: [BreadcrumbComponent, PartsPackingListFilterComponent, PartsPackingListTableComponent, DismissibleAlertComponent],
+  imports: [BreadcrumbComponent, PartsPackingListFilterComponent, PartsPackingListTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './parts-packing-list-list.component.html',
   styleUrl: './parts-packing-list-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

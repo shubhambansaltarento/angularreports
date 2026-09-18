@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
+import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
 import { CommonReportSearchFilters } from '../../../../shared/models/report-search-filters.model';
 import { ExportFormat } from '../../../../shared/services/export/models/export-format.model';
 import { WarrantyReconciliationTableComponent } from '../../components/warranty-reconciliation-table/warranty-reconciliation-table.component';
@@ -27,7 +28,7 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
  */
 @Component({
   selector: 'app-warranty-reconciliation-list',
-  imports: [BreadcrumbComponent, WarrantyReconciliationFilterComponent, WarrantyReconciliationTableComponent, DismissibleAlertComponent],
+  imports: [BreadcrumbComponent, WarrantyReconciliationFilterComponent, WarrantyReconciliationTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './warranty-reconciliation-list.component.html',
   styleUrl: './warranty-reconciliation-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

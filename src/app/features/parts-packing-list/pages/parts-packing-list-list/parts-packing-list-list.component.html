@@ -23,7 +23,9 @@
     </div>
   }
 
-  @if (store.hasSearched() && store.data().length > 0) {
+  @if (store.loading()) {
+    <app-loading-indicator />
+  } @else if (store.hasSearched() && store.data().length > 0) {
     <app-parts-packing-list-table
       class="parts-packing-list-list__table"
       [rows]="store.data()"

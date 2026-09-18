@@ -1,0 +1,104 @@
+<div class="warranty-cost-statement">
+  <header class="warranty-cost-statement__letterhead">
+    <div class="warranty-cost-statement__letterhead-row">
+      <span>TVS MOTOR COMPANY LIMITED</span>
+      <span>STATEMENT OF WARRANTY COST REIMBURSEMENT DETAILS</span>
+      <span>DATE : {{ todayLabel }}</span>
+    </div>
+    <div class="warranty-cost-statement__letterhead-row">
+      <span>POST BOX NO. 4, MARITA, HOSUR 635 109</span>
+      <span>FOR THE PERIOD {{ periodLabel() }}</span>
+      <span>PAGE : 1</span>
+    </div>
+  </header>
+
+  @for (group of statement().dealerGroups; track group.dealerCode) {
+    <table class="warranty-cost-statement__table">
+      <tbody>
+        <tr class="warranty-cost-statement__dealer-row">
+          <td colspan="11">DEALER : {{ group.dealerCode }} &nbsp; {{ group.dealerName }}</td>
+        </tr>
+        @if (group.rows.length > 0) {
+          <tr class="warranty-cost-statement__memo-row warranty-cost-statement__memo-row--label">
+            <td colspan="2">CN MEMO NO.</td>
+            <td colspan="2">DOC DATE</td>
+            <td colspan="2">ORDER NUM</td>
+            <td colspan="2">ORDER DATE</td>
+            <td colspan="2">DLR REF NUM</td>
+            <td colspan="1">REF DATE</td>
+          </tr>
+          <tr class="warranty-cost-statement__memo-row">
+            <td colspan="2">{{ group.rows[0].cnMemoNo }}</td>
+            <td colspan="2">{{ group.rows[0].docDate }}</td>
+            <td colspan="2">{{ group.rows[0].orderNum }}</td>
+            <td colspan="2">{{ group.rows[0].orderDate }}</td>
+            <td colspan="2">{{ group.rows[0].dlrRefNum }}</td>
+            <td colspan="1">{{ group.rows[0].refDate }}</td>
+          </tr>
+        }
+        <tr class="warranty-cost-statement__column-header">
+          <th>S.NO</th>
+          <th>PART NUMBER</th>
+          <th>DESCRIPTION</th>
+          <th>QUANTITY</th>
+          <th>NDP RATE</th>
+          <th>EXCISE</th>
+          <th>SALES TAX</th>
+          <th>LABOUR</th>
+          <th>OCTROI</th>
+          <th>SERVICE TAX</th>
+          <th>TOTAL COST</th>
+        </tr>
+        @for (row of group.rows; track $index) {
+          <tr>
+            <td>{{ $index + 1 }}</td>
+            <td>{{ row.partNumber }}</td>
+            <td>{{ row.description }}</td>
+            <td class="warranty-cost-statement__num">{{ row.quantity }}</td>
+            <td class="warranty-cost-statement__num">{{ row.ndpRate | number: '1.2-2' }}</td>
+            <td class="warranty-cost-statement__num">{{ row.excise | number: '1.2-2' }}</td>
+            <td class="warranty-cost-statement__num">{{ row.salesTax | number: '1.2-2' }}</td>
+            <td class="warranty-cost-statement__num">{{ row.labour | number: '1.2-2' }}</td>
+            <td class="warranty-cost-statement__num">{{ row.octroi | number: '1.2-2' }}</td>
+            <td class="warranty-cost-statement__num">{{ row.serviceTax | number: '1.2-2' }}</td>
+            <td class="warranty-cost-statement__num">{{ row.totCost | number: '1.2-2' }}</td>
+          </tr>
+        }
+        <tr class="warranty-cost-statement__totals-row">
+          <td colspan="4"></td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalNdpRate | number: '1.2-2' }}</td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalExcise | number: '1.2-2' }}</td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalSalesTax | number: '1.2-2' }}</td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalLabour | number: '1.2-2' }}</td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalOctroi | number: '1.2-2' }}</td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalServiceTax | number: '1.2-2' }}</td>
+          <td class="warranty-cost-statement__num">{{ group.summary.totalCost | number: '1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  }
+
+  <div class="warranty-cost-statement__summary">
+    <div class="warranty-cost-statement__summary-block">
+      <div><span>PARTS VALUE :</span><span>{{ statement().grandTotal.partsValue | number: '1.2-2' }}</span></div>
+      <div><span>TOTAL FREIGHT :</span><span>{{ statement().grandTotal.totalFreight | number: '1.2-2' }}</span></div>
+      <div><span>TOTAL DEMURRAGE :</span><span>{{ statement().grandTotal.totalDemurrage | number: '1.2-2' }}</span></div>
+    </div>
+    <div class="warranty-cost-statement__summary-block warranty-cost-statement__summary-block--total">
+      <div><span>TOTAL VALUE :</span><span>{{ statement().grandTotal.totalValue | number: '1.2-2' }}</span></div>
+    </div>
+    <div class="warranty-cost-statement__summary-block">
+      <div><span>DEALER PARTS VALUE :</span><span>{{ statement().grandTotal.partsValue | number: '1.2-2' }}</span></div>
+      <div><span>DEALER TOTAL FREIGHT :</span><span>{{ statement().grandTotal.totalFreight | number: '1.2-2' }}</span></div>
+      <div><span>DEALER TOTAL DEMURRAGE :</span><span>{{ statement().grandTotal.totalDemurrage | number: '1.2-2' }}</span></div>
+    </div>
+    <div class="warranty-cost-statement__summary-block warranty-cost-statement__summary-block--total">
+      <div><span>DEALER TOTAL VALUE :</span><span>{{ statement().grandTotal.totalValue | number: '1.2-2' }}</span></div>
+    </div>
+  </div>
+
+  <footer class="warranty-cost-statement__footer">
+    <p>FOR TVS MOTOR COMPANY LIMITED</p>
+    <p class="warranty-cost-statement__signatory">AUTHORISED SIGNATORY</p>
+  </footer>
+</div>

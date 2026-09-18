@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
+import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
 import { DealerLedgerTableComponent } from '../../components/dealer-ledger-table/dealer-ledger-table.component';
 import { DealerLedgerToolbarComponent } from '../../components/dealer-ledger-toolbar/dealer-ledger-toolbar.component';
 import { DealerLedgerFilterComponent } from '../../filters/dealer-ledger-filter/dealer-ledger-filter.component';
@@ -48,7 +49,7 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
  */
 @Component({
   selector: 'app-dealer-ledger-list',
-  imports: [DealerLedgerToolbarComponent, BreadcrumbComponent, DealerLedgerFilterComponent, DealerLedgerTableComponent, DismissibleAlertComponent],
+  imports: [DealerLedgerToolbarComponent, BreadcrumbComponent, DealerLedgerFilterComponent, DealerLedgerTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './dealer-ledger-list.component.html',
   styleUrl: './dealer-ledger-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
