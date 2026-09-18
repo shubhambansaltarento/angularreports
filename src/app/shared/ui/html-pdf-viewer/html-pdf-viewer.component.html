@@ -1,0 +1,23 @@
+<div class="html-pdf-viewer">
+  <div class="html-pdf-viewer__toolbar">
+    <span class="html-pdf-viewer__title">{{ title() }}</span>
+    <div class="html-pdf-viewer__actions">
+      <button type="button" aria-label="Zoom out" (click)="zoomOut()">−</button>
+      <span class="html-pdf-viewer__zoom-readout">{{ zoomPercent() }}%</span>
+      <button type="button" aria-label="Zoom in" (click)="zoomIn()">+</button>
+      <button type="button" aria-label="Rotate" (click)="rotate()">⟳</button>
+      <button type="button" aria-label="Print" (click)="print()">Print</button>
+      <button type="button" aria-label="Download as PDF" (click)="download()">Download</button>
+    </div>
+  </div>
+
+  <div class="html-pdf-viewer__stage">
+    <div
+      #content
+      class="html-pdf-viewer__content"
+      [style.transform]="'scale(' + zoomPercent() / 100 + ') rotate(' + rotationDegrees() + 'deg)'"
+    >
+      <ng-content />
+    </div>
+  </div>
+</div>

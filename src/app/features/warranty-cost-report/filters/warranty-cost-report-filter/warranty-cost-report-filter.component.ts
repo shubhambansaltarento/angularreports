@@ -3,16 +3,16 @@ import { CommonReportSearchFilters } from '../../../../shared/models/report-sear
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { ReportSearchBarComponent } from '../../../../shared/ui/report-search-bar/report-search-bar.component';
 import { defaultDateRange } from '../../../../shared/utils/default-date-range';
-import { WARRANTY_COST_DEFAULT_COMPANY_CODE } from '../../constants/warranty-cost.constants';
 import { WarrantyCostConfig } from '../../models/warranty-cost-config.model';
+import { WarrantyCostFilters } from '../../models/warranty-cost-filters.model';
 
 /**
  * Filter panel for Warranty Cost Report — composes the shared `ReportSearchBarComponent`
- * with the narrower field set the real SAP form has (Dealer Code/Dealer Description, no
- * Company Code — silently defaulted and always sent, per
- * api-integration-dealer-ledger-style-17-09-2026-07_38_AM.md) — no section headings, per
- * remove-section-headings-17-09-2026-07_41_AM.md. Presentational: no service/store call of
- * its own; the consuming page owns the actual API call.
+ * with read-only, config-sourced Dealer Code/Dealer Description (no Company Code field —
+ * silently defaulted from config, not user-editable, matching Warranty Reconciliation's
+ * pattern) plus an editable Date Range. Presentational: no service/store call of its own.
+ * Renders no submit button of its own — the page's single "Show Report" button calls the
+ * public `submit()`/`isSubmitDisabled()` below.
  */
 @Component({
   selector: 'app-warranty-cost-report-filter',
@@ -28,31 +28,41 @@ export class WarrantyCostReportFilterComponent {
   private readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly searchBar = viewChild.required(ReportSearchBarComponent);
 
-  /**
-   * Prefills Dealer Code/Description — preferring the real config API's `context` once
-   * loaded, falling back to `DealerContextService` before it arrives — plus the default
-   * 1-month Report Range. `companyCode` is silently defaulted (not rendered), per
-   * `showCompanyCode="false"` in the template.
-   */
+  /** Company Code default from config — silently applied, not rendered. */
+  protected readonly companyCode = computed<string | undefined>(() => {
+    const config = this.config();
+    return (config?.parameters.find((parameter) => parameter.name === 'companyCode')?.defaultValue as string | undefined) ?? undefined;
+  });
+
+  /** Prefills Dealer Code/Description — preferring the real config API's `context` once loaded, falling back to `DealerContextService` — plus the default 1-month Report Range. */
   protected readonly initialValue = computed<CommonReportSearchFilters>(() => {
     const context = this.dealerContext();
     const config = this.config();
-    const companyCodeDefault = config?.parameters.find((parameter) => parameter.name === 'companyCode')
-      ?.defaultValue as string | undefined;
 
     return {
       dealerCode: config?.context.dealerCode ?? context.dealerCode,
       dealerDescription: config?.context.dealerDescription ?? context.dealerDescription,
-      companyCode: companyCodeDefault ?? WARRANTY_COST_DEFAULT_COMPANY_CODE,
+      companyCode: this.companyCode() ?? null,
       ...defaultDateRange(),
     };
   });
 
-  readonly searched = output<CommonReportSearchFilters>();
+  readonly searched = output<WarrantyCostFilters>();
 
-  /** Submits the current field values — the only trigger for the data call. */
-  protected onSubmit(): void {
+  /** Submits the current field values — the page's "Show Report" button calls this. */
+  submit(): void {
     if (this.searchBar().isDateRangeInvalid()) return;
-    this.searched.emit(this.searchBar().value());
+    const value = this.searchBar().value();
+    this.searched.emit({
+      dealerCode: value.dealerCode ?? undefined,
+      dealerDescription: value.dealerDescription ?? undefined,
+      companyCode: this.companyCode(),
+      dateFrom: value.dateFrom ?? undefined,
+      dateTo: value.dateTo ?? undefined,
+    });
+  }
+
+  isSubmitDisabled(): boolean {
+    return this.searchBar().isDateRangeInvalid();
   }
 }

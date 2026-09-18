@@ -7,21 +7,27 @@
 
   <app-warranty-cost-report-filter [config]="config()" (searched)="onSearch($event)" />
 
+  <button
+    type="button"
+    class="warranty-cost-report-list__show-report-btn btn btn-sm btn-secondary"
+    [disabled]="filter().isSubmitDisabled()"
+    (click)="onShowReport()"
+  >
+    Show Report
+  </button>
+
   @if (store.error(); as error) {
     <div class="warranty-cost-report-list__error">
       <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
-      <button type="button" class="__retry-btn" (click)="store.refresh()">Retry</button>
+      <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
     </div>
   }
 
-  @if (store.hasSearched() && store.data().length > 0) {
-    <app-warranty-cost-table
-      class="warranty-cost-report-list__table"
-      [rows]="store.data()"
-      [loading]="store.loading()"
-      [exportFormats]="exportFormats()"
-      [effectiveColumns]="store.effectiveColumns()"
-      [dealerName]="config()?.context?.dealerDescription ?? null"
-    />
+  @if (store.hasSearched() && store.statement(); as statement) {
+    @if (statement.dealerGroups.length > 0) {
+      <app-html-pdf-viewer class="warranty-cost-report-list__viewer" title="Warranty Cost Statement" filename="warranty-cost-statement">
+        <app-warranty-cost-statement [statement]="statement" [dateFrom]="dateFrom" [dateTo]="dateTo" />
+      </app-html-pdf-viewer>
+    }
   }
 </div>

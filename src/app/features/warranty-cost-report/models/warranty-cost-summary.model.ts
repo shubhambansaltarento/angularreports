@@ -1,11 +1,14 @@
-/**
- * Aggregate totals across the full filtered result set (not just the current page) —
- * confirmed real shape, data-mapping-fixes-from-real-rows-17-09-2026-08_02_AM.md. No
- * derived field (e.g. a Dealer-Ledger-style closing balance) — these three sums have no
- * established combined meaning for Warranty Cost.
- */
+/** Computed totals for a Warranty Cost statement — the reference PDF's summed columns plus the yellow-highlighted summary block. */
 export interface WarrantyCostSummary {
-  totalLaborCost: number;
-  totalPartCost: number;
+  totalNdpRate: number;
+  totalExcise: number;
+  totalSalesTax: number;
+  totalLabour: number;
+  totalOctroi: number;
+  totalServiceTax: number;
   totalCost: number;
+  partsValue: number;
+  totalFreight: number;
+  totalDemurrage: number;
+  totalValue: number;
 }

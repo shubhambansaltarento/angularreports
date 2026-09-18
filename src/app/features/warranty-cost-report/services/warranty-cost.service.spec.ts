@@ -1,155 +1,125 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
+import { WARRANTY_COST_DATA_URL, WARRANTY_COST_REPORT_KEY } from '../constants/warranty-cost.constants';
 import { WarrantyCostService } from './warranty-cost.service';
-import { WarrantyCostRequest } from '../models/warranty-cost-request.model';
 import { ReportApiService } from '../../../shared/services/report-api/report-api.service';
 
-const BASE_REQUEST: WarrantyCostRequest = {
-  page: 1,
-  pageSize: 50,
-  sort: [],
-  filters: {
-    dealerCode: '10015',
-    dateFrom: '2026-08-17',
-    dateTo: '2026-09-17',
-  },
+const RAW_ROW = {
+  dealer: '0000010015',
+  dealer_name: 'PAVAN SEKHAR AUTOMOBILES',
+  cn_memo_no: '91048544',
+  doc_date: '20260912',
+  order_num: '64162944',
+  order_date: '20260809',
+  dlr_ref_num: 'HOS-44',
+  ref_date: '20260809',
+  item_no: '1',
+  part_number: 'K6242080',
+  description: 'BATTERY PACK ASSY',
+  quantity: 1,
+  plant: 'SPWH',
+  ndp_rate: 25470,
+  excise: 0,
+  sales_tax: 0,
+  labour: 120,
+  octroi: 0,
+  service_tax: 0,
+  tot_cost: 25590,
+  freight: 0,
+  demurrage: 0,
+  billing_doc: 'X',
 };
 
 describe('WarrantyCostService', () => {
-  let getDataSpy: ReturnType<typeof vi.fn>;
   let service: WarrantyCostService;
+  let httpMock: HttpTestingController;
+  let getConfigSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    getDataSpy = vi.fn().mockReturnValue(
-      of({
-        reportCode: 'WARRANTY_COST',
-        configVersion: '2026.09.1',
-        effectiveColumns: [],
-        rows: [],
-        totals: {},
-        paging: { page: 1, pageSize: 50, totalRows: 0, totalPages: 0 },
-        meta: { generatedAt: '', dataAsOf: '', queryMs: 0 },
-      }),
-    );
+    getConfigSpy = vi.fn().mockReturnValue(of(null));
 
     TestBed.configureTestingModule({
-      providers: [WarrantyCostService, { provide: ReportApiService, useValue: { getConfig: vi.fn(), getData: getDataSpy } }],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        WarrantyCostService,
+        { provide: ReportApiService, useValue: { getConfig: getConfigSpy } },
+      ],
     });
 
     service = TestBed.inject(WarrantyCostService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  it('sends dealerCode, a silently-defaulted companyCode, and claimDate.{from,to} — matching the confirmed real request shape (api-integration-dealer-ledger-style-17-09-2026-07_38_AM.md)', () => {
-    service.getEntries(BASE_REQUEST).subscribe();
+  afterEach(() => {
+    httpMock.verify();
+    TestBed.resetTestingModule();
+  });
 
-    expect(getDataSpy).toHaveBeenCalledTimes(1);
-    const [, apiRequest] = getDataSpy.mock.calls[0];
-    expect(apiRequest.parameters).toEqual({
-      dealerCode: '10015',
-      companyCode: 'TVSL',
-      claimDate: { from: '2026-08-17', to: '2026-09-17' },
+  it('getConfig() calls the generic report-keyed config endpoint with WARRANTY_COST', () => {
+    getConfigSpy.mockReturnValue(of({ reportCode: 'WARRANTY_COST', title: 'Warranty Cost', configVersion: '1', context: { dealerCode: '10015', dealerDescription: 'X' }, parameters: [] }));
+
+    let result: unknown;
+    service.getConfig().subscribe((config) => (result = config));
+
+    expect(getConfigSpy).toHaveBeenCalledWith(WARRANTY_COST_REPORT_KEY);
+    expect(result).toEqual(expect.objectContaining({ reportCode: 'WARRANTY_COST' }));
+  });
+
+  it('POSTs dealerCode zero-padded with 00000, plus companyCode/fromDate/toDate, to fetch-data-bricks-data', () => {
+    service.getEntries({ dealerCode: '10015', companyCode: 'TSL', dateFrom: '2026-08-01', dateTo: '2026-08-31' }).subscribe();
+
+    const req = httpMock.expectOne(WARRANTY_COST_DATA_URL);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      dealerCode: '0000010015',
+      companyCode: 'TSL',
+      fromDate: '2026-08-01',
+      toDate: '2026-08-31',
     });
-    expect(apiRequest.paging).toEqual({ page: 1, pageSize: 50 });
-    expect(apiRequest.sort).toEqual([]);
+    req.flush([]);
   });
 
-  it('maps a real multi-row response onto internal WarrantyCostRow shapes with distinct ids (column-schema-changed-to-order-date-quantity-17-09-2026-08_14_AM.md)', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'WARRANTY_COST',
-        configVersion: '2026.09.1',
-        effectiveColumns: [{ columnName: 'dealerCode', isDefault: true, isVisible: true }],
-        rows: [
-          { dealerCode: '10015', dealerName: 'PAWAN SARKAR AUTOMOBILES', orderDate: '28-04-2026', quantity: 2 },
-          { dealerCode: '10015', orderDate: '10-05-2026' },
-        ],
-        totals: {},
-        paging: { page: 1, pageSize: 50, totalRows: 2, totalPages: 1 },
-        meta: { generatedAt: '', dataAsOf: '', queryMs: 0 },
+  it('groups rows by dealer and formats YYYYMMDD dates as DD.MM.YYYY', () => {
+    let result: { dealerGroups: { dealerCode: string; dealerName: string; rows: { docDate: string }[] }[] } | undefined;
+    service.getEntries({ dealerCode: '10015' }).subscribe((response) => (result = response));
+
+    const req = httpMock.expectOne(WARRANTY_COST_DATA_URL);
+    req.flush([RAW_ROW]);
+
+    expect(result?.dealerGroups).toEqual([
+      expect.objectContaining({
+        dealerCode: '0000010015',
+        dealerName: 'PAVAN SEKHAR AUTOMOBILES',
+        rows: [expect.objectContaining({ docDate: '12.09.2026', partNumber: 'K6242080' })],
       }),
-    );
-
-    let result: { rows: { id: string; orderDate: string; quantity: number }[]; totalCount: number; effectiveColumns?: unknown } | undefined;
-    service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
-
-    expect(result?.rows.map((row) => row.orderDate)).toEqual(['2026-04-28', '2026-05-10']);
-    expect(result?.rows[0].quantity).toBe(2);
-    expect(result?.rows[1].quantity).toBe(0);
-    expect(new Set(result?.rows.map((row) => row.id)).size).toBe(2);
-    expect(result?.totalCount).toBe(2);
-    expect(result?.effectiveColumns).toEqual([{ columnName: 'dealerCode', isDefault: true, isVisible: true }]);
+    ]);
   });
 
-  it('normalizes a real DD-MM-YYYY orderDate from the backend to ISO 8601, so DatePipe can render it (column-schema-changed-to-order-date-quantity-17-09-2026-08_14_AM.md)', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'WARRANTY_COST',
-        configVersion: '2026.09.1',
-        effectiveColumns: [],
-        rows: [{ dealerCode: '10015', dealerName: 'PAWAN SARKAR AUTOMOBILES', orderDate: '28-04-2026', quantity: 2 }],
-        totals: { laborCost: 450, partCost: 1250, totalCost: 1700 },
-        paging: { page: 1, pageSize: 1, totalRows: 1, totalPages: 1 },
-        meta: { generatedAt: '', dataAsOf: '', queryMs: 0 },
-      }),
-    );
+  it('computes per-dealer and grand-total summaries from the cost columns', () => {
+    let result:
+      | { dealerGroups: { summary: { totalCost: number; totalValue: number } }[]; grandTotal: { totalCost: number; totalValue: number } }
+      | undefined;
+    service.getEntries({ dealerCode: '10015' }).subscribe((response) => (result = response));
 
-    let result: { rows: { orderDate: string }[] } | undefined;
-    service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
+    const req = httpMock.expectOne(WARRANTY_COST_DATA_URL);
+    req.flush([RAW_ROW, { ...RAW_ROW, tot_cost: 100, freight: 10, demurrage: 5 }]);
 
-    expect(result?.rows[0].orderDate).toBe('2026-04-28');
+    expect(result?.dealerGroups[0].summary.totalCost).toBe(25690);
+    expect(result?.grandTotal.totalCost).toBe(25690);
+    expect(result?.grandTotal.totalValue).toBe(25690 + 10 + 5);
   });
 
-  it('leaves an already-ISO or unrecognized orderDate format unchanged', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'WARRANTY_COST',
-        configVersion: '2026.09.1',
-        effectiveColumns: [],
-        rows: [{ orderDate: '2026-04-28' }],
-        totals: {},
-        paging: { page: 1, pageSize: 1, totalRows: 1, totalPages: 1 },
-        meta: { generatedAt: '', dataAsOf: '', queryMs: 0 },
-      }),
-    );
+  it('returns an empty statement (zero-valued grand total) for an empty response', () => {
+    let result: { dealerGroups: unknown[]; grandTotal: { totalCost: number } } | undefined;
+    service.getEntries({ dealerCode: '10015' }).subscribe((response) => (result = response));
 
-    let result: { rows: { orderDate: string }[] } | undefined;
-    service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
+    const req = httpMock.expectOne(WARRANTY_COST_DATA_URL);
+    req.flush([]);
 
-    expect(result?.rows[0].orderDate).toBe('2026-04-28');
-  });
-
-  it('maps the real totals shape ({ laborCost, partCost, totalCost }) onto the internal summary, even though these fields no longer appear on any row', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'WARRANTY_COST',
-        configVersion: '2026.09.1',
-        effectiveColumns: [],
-        rows: [],
-        totals: { laborCost: 3600, partCost: 14451.5, totalCost: 18051.5 },
-        paging: { page: 1, pageSize: 50, totalRows: 0, totalPages: 0 },
-        meta: { generatedAt: '', dataAsOf: '', queryMs: 0 },
-      }),
-    );
-
-    let result: { summary: { totalLaborCost: number; totalPartCost: number; totalCost: number } } | undefined;
-    service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
-
-    expect(result?.summary).toEqual({ totalLaborCost: 3600, totalPartCost: 14451.5, totalCost: 18051.5 });
-  });
-
-  it('defaults every summary field to 0 when totals is empty ({})', () => {
-    let result: { summary: { totalLaborCost: number; totalPartCost: number; totalCost: number } } | undefined;
-    service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
-
-    expect(result?.summary).toEqual({ totalLaborCost: 0, totalPartCost: 0, totalCost: 0 });
-  });
-
-  it('propagates a fetch failure as an error (no mock fallback, unlike Dealer Ledger)', () => {
-    getDataSpy.mockReturnValue(throwError(() => new Error('network error')));
-
-    let errored = false;
-    service.getEntries(BASE_REQUEST).subscribe({ error: () => (errored = true) });
-
-    expect(errored).toBe(true);
+    expect(result?.dealerGroups).toEqual([]);
+    expect(result?.grandTotal.totalCost).toBe(0);
   });
 });
