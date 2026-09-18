@@ -1,0 +1,19 @@
+.typeahead-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.typeahead-input--compact {
+  gap: 0.125rem;
+
+  .form-label {
+    font-size: 0.8125rem;
+    margin-bottom: 0;
+  }
+
+  input {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+}

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
+import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { CommonReportSearchFilters } from '../../../../shared/models/report-search-filters.model';
 import { ExportFormat } from '../../../../shared/services/export/models/export-format.model';
 import { WarrantyCostTableComponent } from '../../components/warranty-cost-table/warranty-cost-table.component';
@@ -27,7 +28,7 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
  */
 @Component({
   selector: 'app-warranty-cost-report-list',
-  imports: [BreadcrumbComponent, WarrantyCostReportFilterComponent, WarrantyCostTableComponent],
+  imports: [BreadcrumbComponent, WarrantyCostReportFilterComponent, WarrantyCostTableComponent, DismissibleAlertComponent],
   templateUrl: './warranty-cost-report-list.component.html',
   styleUrl: './warranty-cost-report-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

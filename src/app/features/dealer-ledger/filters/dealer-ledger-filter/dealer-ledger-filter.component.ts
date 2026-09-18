@@ -82,10 +82,21 @@ export class DealerLedgerFilterComponent {
   readonly searched = output<DealerLedgerFilterValue>();
   readonly reset = output<DealerLedgerFilterValue>();
 
-  /** Submits the current filter/checkbox values — the only trigger for a data API call (submit-button-replaces-auto-search-16-09-2026-04_54_PM). */
-  protected onSubmit(): void {
+  /**
+   * Submits the current filter/checkbox values — the only trigger for a data API call
+   * (submit-button-replaces-auto-search-16-09-2026-04_54_PM). Public: the page's own
+   * "Show Report" button (dealer-ledger-list.component.html) triggers this directly —
+   * the filter panel no longer renders its own submit button
+   * (remove-embedded-submit-button-single-show-report-action-17-09-2026-*.md).
+   */
+  submit(): void {
     if (this.searchBar().isDateRangeInvalid()) return;
     this.searched.emit(this.currentValue());
+  }
+
+  /** Whether the current Date Range is invalid — drives the page's "Show Report" button disabled state. */
+  isSubmitDisabled(): boolean {
+    return this.searchBar().isDateRangeInvalid();
   }
 
   protected isChecked(optionKey: string): boolean {

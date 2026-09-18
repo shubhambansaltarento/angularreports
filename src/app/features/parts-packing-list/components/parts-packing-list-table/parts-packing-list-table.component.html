@@ -1,0 +1,9 @@
+<app-data-table
+  tableId="parts-packing-list"
+  title="Parts Packing List"
+  trackByKey="id"
+  emptyStateMessage="No parts packing list entries match the current filters."
+  [columns]="columns()"
+  [data]="rows()"
+  [loading]="loading()"
+/>

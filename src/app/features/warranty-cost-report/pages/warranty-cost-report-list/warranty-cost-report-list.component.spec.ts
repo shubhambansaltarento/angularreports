@@ -62,14 +62,23 @@ describe('WarrantyCostReportListComponent', () => {
     expect(fixture.nativeElement.querySelector('app-warranty-cost-report-filter')).toBeTruthy();
   });
 
-  it('does not render the table before the first Submit, and renders it once store.hasSearched becomes true', () => {
+  it('does not render the table before the first Submit, and renders it once store.hasSearched becomes true and there is at least one row', () => {
     const fixture = createComponent();
     expect(fixture.nativeElement.querySelector('app-warranty-cost-table')).toBeFalsy();
 
     (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);
+    (storeStub.data as ReturnType<typeof signal<unknown[]>>).set([{ id: '1' }]);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-warranty-cost-table')).toBeTruthy();
+  });
+
+  it('hides the table when the search returns zero rows, even after hasSearched is true', () => {
+    const fixture = createComponent();
+    (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-warranty-cost-table')).toBeFalsy();
   });
 
   it('calls store.search with mapped filters when the filter panel emits searched', () => {
@@ -170,7 +179,7 @@ describe('WarrantyCostReportListComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Unable to load Warranty Cost Report entries.');
     const retryButton: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.warranty-cost-report-list__error button',
+      '.warranty-cost-report-list__error .__retry-btn',
     );
     retryButton.click();
 

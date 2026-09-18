@@ -133,7 +133,7 @@ describe('DealerLedgerListComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Unable to load Dealer Ledger entries.');
     const retryButton: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.dealer-ledger-list__error button',
+      '.dealer-ledger-list__error .__retry-btn',
     );
     retryButton.click();
 
@@ -150,11 +150,62 @@ describe('DealerLedgerListComponent', () => {
     expect(fixture.nativeElement.querySelector('app-dealer-ledger-table')).toBeFalsy();
   });
 
-  it('renders the table once store.hasSearched becomes true', () => {
+  it('renders the table once store.hasSearched becomes true and there is at least one row', () => {
+    const fixture = createComponent();
+    (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);
+    (storeStub.data as ReturnType<typeof signal<unknown[]>>).set([{ id: '1' }]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-dealer-ledger-table')).toBeTruthy();
+  });
+
+  it('hides the table when the search returns zero rows, even after hasSearched is true', () => {
     const fixture = createComponent();
     (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('app-dealer-ledger-table')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-dealer-ledger-table')).toBeFalsy();
+  });
+
+  it('renders a small, secondary "Show Report" button (bootstrap btn btn-sm btn-secondary)', () => {
+    const fixture = createComponent();
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.dealer-ledger-list__show-report-btn',
+    );
+
+    expect(button).toBeTruthy();
+    expect(button.textContent?.trim()).toBe('Show Report');
+    expect(button.classList).toContain('btn');
+    expect(button.classList).toContain('btn-sm');
+    expect(button.classList).toContain('btn-secondary');
+  });
+
+  it('clicking Show Report delegates to the filter panel\'s submit(), which emits searched', () => {
+    const fixture = createComponent();
+    const submitSpy = vi.spyOn(fixture.componentInstance['filter'](), 'submit');
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.dealer-ledger-list__show-report-btn',
+    );
+    button.click();
+
+    expect(submitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Show Report when the filter panel reports an invalid date range', () => {
+    const fixture = createComponent();
+
+    const dateFrom: HTMLInputElement = fixture.nativeElement.querySelector('#report-search-bar-date-from');
+    const dateTo: HTMLInputElement = fixture.nativeElement.querySelector('#report-search-bar-date-to');
+    dateFrom.value = '2024-02-01';
+    dateFrom.dispatchEvent(new Event('input'));
+    dateTo.value = '2024-01-01';
+    dateTo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.dealer-ledger-list__show-report-btn',
+    );
+    expect(button.disabled).toBe(true);
   });
 });

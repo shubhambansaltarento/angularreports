@@ -22,7 +22,6 @@ import { ReportConfig } from './shared/models/report-config.model';
  */
 const SEARCH_ONLY_REPORT_CONFIGS: ReportConfig[] = [
   WARRANTY_LABOUR_TAX_INVOICE_REPORT_CONFIG,
-  PARTS_PACKING_LIST_REPORT_CONFIG,
   VOR_PRINT_REPORT_CONFIG,
   PQM_REPORT_CONFIG,
 ];
@@ -61,6 +60,11 @@ export const routes: Routes = [
       import('./features/warranty-reconciliation/warranty-reconciliation.routes').then(
         (m) => m.WARRANTY_RECONCILIATION_ROUTES,
       ),
+  },
+  {
+    path: PARTS_PACKING_LIST_REPORT_CONFIG.route,
+    loadChildren: () =>
+      import('./features/parts-packing-list/parts-packing-list.routes').then((m) => m.PARTS_PACKING_LIST_ROUTES),
   },
   ...SEARCH_ONLY_REPORT_CONFIGS.map((config) => ({
     path: config.route,

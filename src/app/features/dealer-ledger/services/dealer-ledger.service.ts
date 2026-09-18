@@ -1,15 +1,26 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { DealerLedgerMockService } from './dealer-ledger-mock.service';
 import { DEALER_LEDGER_REPORT_KEY } from '../constants/dealer-ledger.constants';
-import { DealerLedgerApiRequest } from '../models/dealer-ledger-api-request.model';
-import { DealerLedgerApiResponse, DealerLedgerApiResponseRow } from '../models/dealer-ledger-api-response.model';
 import { DealerLedgerConfig } from '../models/dealer-ledger-config.model';
+import { DealerLedgerDatabricksRow } from '../models/dealer-ledger-databricks-row.model';
 import { DealerLedgerRequest } from '../models/dealer-ledger-request.model';
 import { DealerLedgerResponse } from '../models/dealer-ledger-response.model';
 import { DealerLedgerRow } from '../models/dealer-ledger-row.model';
 import { ReportApiService } from '../../../shared/services/report-api/report-api.service';
+import { DATABRICKS_FETCH_LIMIT } from '../../../shared/constants/databricks-api.constants';
+
+/**
+ * `GET` endpoint for the real, Databricks-backed Dealer Ledger data source — the backend
+ * standardized this (and Parts Packing List's) endpoint onto `fetch-data-bricks-data`, per
+ * databricks-endpoints-renamed-to-fetch-data-bricks-data-18-09-2026-11_52_AM.md.
+ */
+const DEALER_LEDGER_DATABRICKS_URL = 'http://localhost:8080/dealer-ledger/fetch-data-bricks-data';
+
+/** `kunnr`'s real SAP shape is a 10-digit, zero-padded customer number — always prefixed onto the filter's plain dealer code. */
+const KUNNR_PREFIX = '00000';
 
 /**
  * Feature-level facade for the Dealer Ledger feature — calls the real, report-keyed API
@@ -27,6 +38,7 @@ import { ReportApiService } from '../../../shared/services/report-api/report-api
  */
 @Injectable()
 export class DealerLedgerService {
+  private readonly http = inject(HttpClient);
   private readonly reportApi = inject(ReportApiService);
   private readonly mockRepository = inject(DealerLedgerMockService);
 
@@ -50,59 +62,75 @@ export class DealerLedgerService {
   }
 
   getEntries(request: DealerLedgerRequest): Observable<DealerLedgerResponse> {
-    const apiRequest = this.toApiRequest(request);
-    console.log(`[Dealer Ledger] Loading report data for "${DEALER_LEDGER_REPORT_KEY}"...`, apiRequest);
+    const params = this.toDatabricksParams(request);
+    console.log(`[Dealer Ledger] Loading Databricks report data...`, params);
 
-    return this.reportApi.getData<DealerLedgerApiRequest, DealerLedgerApiResponse>(DEALER_LEDGER_REPORT_KEY, apiRequest).pipe(
-      tap((response) => console.log(`[Dealer Ledger] Report data loaded (raw):`, response)),
-      map((response) => this.toDealerLedgerResponse(response, request.page)),
+    return this.http.get<DealerLedgerDatabricksRow[]>(DEALER_LEDGER_DATABRICKS_URL, { params }).pipe(
+      tap((rows) => console.log(`[Dealer Ledger] Databricks data loaded (raw):`, rows)),
+      map((rows) => this.toDealerLedgerResponseFromDatabricks(rows, request.page)),
       tap((response) => console.log(`[Dealer Ledger] Report data mapped — ${response.rows.length} row(s).`, response)),
       catchError((error) => {
-        console.error(`[Dealer Ledger] Report data fetch failed — falling back to mock data.`, error);
+        console.error(`[Dealer Ledger] Databricks data fetch failed — falling back to mock data.`, error);
         return this.mockRepository.list(request);
       }),
     );
   }
 
-  /** Maps the internal request/filters onto the backend's exact contract, per data-api-request-contract-16-09-2026-02_48_PM.md/backend-adds-checkbox-support-16-09-2026-05_24_PM.md. */
-  private toApiRequest(request: DealerLedgerRequest): DealerLedgerApiRequest {
+  /** Maps the internal request/filters onto `fetchDatabricksdata`'s query parameters. */
+  private toDatabricksParams(request: DealerLedgerRequest): HttpParams {
     const { filters } = request;
+    let params = new HttpParams().set('limit', DATABRICKS_FETCH_LIMIT);
+
+    if (filters.companyCode) params = params.set('bukrs', filters.companyCode);
+    if (filters.dealerCode) params = params.set('kunnr', KUNNR_PREFIX + filters.dealerCode);
+    if (filters.dateFrom) params = params.set('fromDate', filters.dateFrom);
+
+    return params;
+  }
+
+  /** Maps `fetchDatabricksdata`'s flat row array onto the app's internal `DealerLedgerResponse`. */
+  private toDealerLedgerResponseFromDatabricks(rows: DealerLedgerDatabricksRow[], page: number): DealerLedgerResponse {
+    const mappedRows = rows.map((row, index) => this.toDealerLedgerRowFromDatabricks(row, page, index));
+    const totalDebit = rows.reduce((sum, row) => sum + (row.debit_amount ?? 0), 0);
+    const totalCredit = rows.reduce((sum, row) => sum + (row.credit_amount ?? 0), 0);
 
     return {
-      parameters: {
-        dealerCode: filters.dealerCode,
-        companyCode: filters.companyCode ?? '',
-        postingDate: { from: filters.dateFrom ?? '', to: filters.dateTo ?? '' },
-        // The "Include Details" checkboxes, sent as their own real parameters ahead of
-        // backend support (checkbox-filters-in-request-parameters-16-09-2026-05_08_PM.md) — always
-        // sent as definite booleans, never omitted, regardless of selection.
-        withOeDetails: filters.withOeDetails ?? false,
-        withSpDetails: filters.withSpDetails ?? false,
-        withAcDetails: filters.withAcDetails ?? false,
-        withEvDetails: filters.withEvDetails ?? false,
-        withAcwshDetails: filters.withAcwshDetails ?? false,
+      rows: mappedRows,
+      totalCount: rows.length,
+      summary: {
+        totalDebit,
+        totalCredit,
+        closingBalance: totalDebit - totalCredit,
+        entryCount: rows.length,
       },
-      paging: { page: request.page, pageSize: request.pageSize },
-      sort: request.sort.map((entry) => ({
-        field: entry.columnKey,
-        direction: entry.direction === 'desc' ? 'DESC' : 'ASC',
-      })),
-      configVersion: this.lastConfig?.configVersion ?? '',
     };
   }
 
-  /** Maps the backend's real response shape onto the app's internal `DealerLedgerResponse`, per data-api-response-mapping-16-09-2026-03_00_PM.md. */
-  private toDealerLedgerResponse(response: DealerLedgerApiResponse, page: number): DealerLedgerResponse {
+  private toDealerLedgerRowFromDatabricks(row: DealerLedgerDatabricksRow, page: number, index: number): DealerLedgerRow {
     return {
-      rows: response.rows.map((row, index) => this.toDealerLedgerRow(row, page, index)),
-      totalCount: response.paging.totalRows,
-      summary: {
-        totalDebit: response.totals.debit,
-        totalCredit: response.totals.credit,
-        closingBalance: response.totals.debit - response.totals.credit,
-        entryCount: response.paging.totalRows,
-      },
-      effectiveColumns: response.effectiveColumns,
+      id: `${page}-${index}`,
+      dealerCode: row.dealer_code ?? '',
+      dealerName: row.dealer_name ?? '',
+      dealerAddress: row.dealer_address ?? '',
+      docType: (row.doc_type ?? '') as DealerLedgerRow['docType'],
+      docReferenceNo: row.doc_reference_no ?? '',
+      docDate: this.toIsoDate(row.doc_date ?? row.post_date ?? ''),
+      assignment: row.assignment ?? '',
+      cca: row.credit_control_area ?? '',
+      textDec: row.text_f ?? '',
+      narrationVehDescription: row.narration_veh_descr ?? '',
+      debitAmount: row.debit_amount ?? 0,
+      creditAmount: row.credit_amount ?? 0,
+      currency: row.currency ?? '',
+      text: row.vehicle_text ?? '',
+      qnt: 0,
+      amt: row.amount ?? row.running_balance ?? 0,
+      oeRefNo: '',
+      spRefNo: '',
+      acRefNo: '',
+      evRefNo: '',
+      acwshRefNo: '',
+      cblRefNo: '',
     };
   }
 
@@ -118,33 +146,5 @@ export class DealerLedgerService {
     if (!match) return value;
     const [, day, month, year] = match;
     return `${year}-${month}-${day}`;
-  }
-
-  private toDealerLedgerRow(row: DealerLedgerApiResponseRow, page: number, index: number): DealerLedgerRow {
-    return {
-      id: `${page}-${index}`,
-      dealerCode: row.dealerCode ?? '',
-      dealerName: row.dealerName ?? '',
-      dealerAddress: row.dealerAddress ?? '',
-      docType: (row.docType ?? '') as DealerLedgerRow['docType'],
-      docReferenceNo: row.docReferenceNo ?? '',
-      docDate: this.toIsoDate(row.docDate ?? row.postingDate ?? ''),
-      assignment: row.assignment ?? '',
-      cca: row.cca ?? '',
-      textDec: row.textDec ?? '',
-      narrationVehDescription: row.vehicleNarration ?? '',
-      debitAmount: row.debit ?? 0,
-      creditAmount: row.credit ?? 0,
-      currency: row.currency ?? '',
-      text: row.text ?? '',
-      qnt: row.qnt ?? 0,
-      amt: row.amt ?? row.runningBalance ?? 0,
-      oeRefNo: row.oeRefNo ?? '',
-      spRefNo: row.spRefNo ?? '',
-      acRefNo: row.acRefNo ?? '',
-      evRefNo: row.evRefNo ?? '',
-      acwshRefNo: row.acwshRefNo ?? '',
-      cblRefNo: row.cblRefNo ?? '',
-    };
   }
 }
