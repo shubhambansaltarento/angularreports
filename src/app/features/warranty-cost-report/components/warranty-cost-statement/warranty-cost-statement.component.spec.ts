@@ -92,4 +92,25 @@ describe('WarrantyCostStatementComponent', () => {
     const fixture = createComponent();
     expect(fixture.nativeElement.textContent).toContain('AUTHORISED SIGNATORY');
   });
+
+  it('renders an additional green memo row between the header and the dealer row, with the shared memo/order fields — the existing line-item rows are unaffected and keep showing their own values', () => {
+    const fixture = createComponent();
+
+    const memoRow: HTMLTableRowElement = fixture.nativeElement.querySelector('.warranty-cost-statement__memo-row');
+    expect(memoRow).toBeTruthy();
+    expect(memoRow.textContent).toContain('91048544');
+    expect(memoRow.textContent).toContain('12.09.2026');
+    expect(memoRow.textContent).toContain('64162944');
+    expect(memoRow.textContent).toContain('HOS-44');
+
+    const dealerRow: HTMLTableRowElement = fixture.nativeElement.querySelector('.warranty-cost-statement__dealer-row');
+    expect(memoRow.nextElementSibling).toBe(dealerRow);
+
+    // Line-item rows are unchanged — they still show their own cnMemoNo/orderNum etc.
+    // tbody order: memo row, dealer row, line item(s), totals row.
+    const bodyRows: NodeListOf<HTMLTableRowElement> = fixture.nativeElement.querySelectorAll('tbody tr');
+    const lineItemRow = bodyRows[bodyRows.length - 2];
+    expect(lineItemRow.textContent).toContain('91048544');
+    expect(lineItemRow.textContent).toContain('64162944');
+  });
 });

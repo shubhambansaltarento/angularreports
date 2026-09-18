@@ -35,6 +35,18 @@
         </tr>
       </thead>
       <tbody>
+        @if (group.rows.length > 0) {
+          <tr class="warranty-cost-statement__memo-row">
+            <td></td>
+            <td>{{ group.rows[0].cnMemoNo }}</td>
+            <td>{{ group.rows[0].docDate }}</td>
+            <td>{{ group.rows[0].orderNum }}</td>
+            <td>{{ group.rows[0].orderDate }}</td>
+            <td>{{ group.rows[0].dlrRefNum }}</td>
+            <td>{{ group.rows[0].refDate }}</td>
+            <td colspan="9"></td>
+          </tr>
+        }
         <tr class="warranty-cost-statement__dealer-row">
           <td colspan="16">DEALER : {{ group.dealerCode }} &nbsp; {{ group.dealerName }}</td>
         </tr>
