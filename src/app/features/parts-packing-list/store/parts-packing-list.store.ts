@@ -12,6 +12,7 @@ const GENERIC_ERROR_MESSAGE = 'Unable to load Parts Packing List entries. Please
 
 interface SearchRequest {
   dealerCode: string;
+  companyCode: string;
   filters: PartsPackingListFilters;
 }
 
@@ -50,7 +51,7 @@ export class PartsPackingListStore {
           this._error.set(null);
         }),
         switchMap((request) =>
-          this.partsPackingListService.getEntries(request.dealerCode, request.filters).pipe(
+          this.partsPackingListService.getEntries(request.dealerCode, request.companyCode, request.filters).pipe(
             catchError(() => {
               this._error.set(GENERIC_ERROR_MESSAGE);
               return of(null);
@@ -62,9 +63,9 @@ export class PartsPackingListStore {
       .subscribe((response) => this.applyResponse(response));
   }
 
-  /** Fetches with the given dealer code (invisible to the user) and filter panel values. */
-  search(dealerCode: string, filters: PartsPackingListFilters): void {
-    const request: SearchRequest = { dealerCode, filters };
+  /** Fetches with the given dealer/company code (both invisible to the user, sourced from config) and filter panel values. */
+  search(dealerCode: string, companyCode: string, filters: PartsPackingListFilters): void {
+    const request: SearchRequest = { dealerCode, companyCode, filters };
     this.lastRequest = request;
     this.requests.next(request);
   }

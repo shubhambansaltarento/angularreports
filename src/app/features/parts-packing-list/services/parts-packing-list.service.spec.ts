@@ -1,11 +1,10 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import {
-  PARTS_PACKING_LIST_CONFIG_URL,
-  PARTS_PACKING_LIST_DATA_URL,
-} from '../constants/parts-packing-list.constants';
+import { of } from 'rxjs';
+import { PARTS_PACKING_LIST_DATA_URL, PARTS_PACKING_LIST_REPORT_KEY } from '../constants/parts-packing-list.constants';
 import { PartsPackingListService } from './parts-packing-list.service';
+import { ReportApiService } from '../../../shared/services/report-api/report-api.service';
 
 const RAW_ROW = {
   dealer_code: '0000010015',
@@ -23,10 +22,18 @@ const RAW_ROW = {
 describe('PartsPackingListService', () => {
   let service: PartsPackingListService;
   let httpMock: HttpTestingController;
+  let getConfigSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    getConfigSpy = vi.fn().mockReturnValue(of(null));
+
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), PartsPackingListService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        PartsPackingListService,
+        { provide: ReportApiService, useValue: { getConfig: getConfigSpy } },
+      ],
     });
 
     service = TestBed.inject(PartsPackingListService);
@@ -38,39 +45,49 @@ describe('PartsPackingListService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('fetches config from the plain (non report-keyed) endpoint', () => {
+  it('getConfig() calls the generic report-keyed config endpoint with PARTS_PACKING_LIST', () => {
+    getConfigSpy.mockReturnValue(
+      of({
+        reportCode: 'PARTS_PACKING_LIST',
+        title: 'Parts Packing List',
+        context: { dealerCode: '10015', dealerDescription: 'X' },
+        parameters: [],
+      }),
+    );
+
     let result: unknown;
     service.getConfig().subscribe((config) => (result = config));
 
-    const req = httpMock.expectOne(PARTS_PACKING_LIST_CONFIG_URL);
-    expect(req.request.method).toBe('GET');
-    req.flush({ reportCode: 'PARTS_PACKING_LIST', title: 'Parts Packing List', parameters: [] });
-
-    expect(result).toEqual({ reportCode: 'PARTS_PACKING_LIST', title: 'Parts Packing List', parameters: [] });
+    expect(getConfigSpy).toHaveBeenCalledWith(PARTS_PACKING_LIST_REPORT_KEY);
+    expect(result).toEqual(expect.objectContaining({ reportCode: 'PARTS_PACKING_LIST' }));
   });
 
   it('returns null and does not throw when the config fetch fails', () => {
+    getConfigSpy.mockReturnValue(of(null));
+
     let result: unknown = 'not-yet-set';
     service.getConfig().subscribe((config) => (result = config));
-
-    const req = httpMock.expectOne(PARTS_PACKING_LIST_CONFIG_URL);
-    req.error(new ProgressEvent('error'));
 
     expect(result).toBeNull();
   });
 
-  it('POSTs dealerCode/fromDate/toDate to fetchDatabricksdata', () => {
-    service.getEntries('0000010015', { dateFrom: '2026-08-01', dateTo: '2026-09-01' }).subscribe();
+  it('POSTs dealerCode zero-padded with 00000, plus companyCode/fromDate/toDate, to fetch-data-bricks-data', () => {
+    service.getEntries('10015', 'TSL', { dateFrom: '2026-08-01', dateTo: '2026-09-01' }).subscribe();
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ dealerCode: '0000010015', fromDate: '2026-08-01', toDate: '2026-09-01' });
+    expect(req.request.body).toEqual({
+      dealerCode: '0000010015',
+      companyCode: 'TSL',
+      fromDate: '2026-08-01',
+      toDate: '2026-09-01',
+    });
     req.flush([]);
   });
 
   it('derives columns from the first row\'s keys, Title Casing snake_case field names', () => {
     let result: { columns: { key: string; header: string }[] } | undefined;
-    service.getEntries('0000010015', {}).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', {}).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([RAW_ROW]);
@@ -85,7 +102,7 @@ describe('PartsPackingListService', () => {
 
   it('maps every raw field onto the row and adds a synthetic id', () => {
     let result: { rows: Record<string, unknown>[] } | undefined;
-    service.getEntries('0000010015', {}).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', {}).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([RAW_ROW]);
@@ -95,7 +112,7 @@ describe('PartsPackingListService', () => {
 
   it('returns no columns for an empty response', () => {
     let result: { columns: unknown[] } | undefined;
-    service.getEntries('0000010015', {}).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', {}).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([]);
@@ -105,7 +122,7 @@ describe('PartsPackingListService', () => {
 
   it('applies invoiceNumber/deliveryNumber as client-side substring filters', () => {
     let result: { rows: Record<string, unknown>[] } | undefined;
-    service.getEntries('0000010015', { invoiceNumber: '523016' }).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', { invoiceNumber: '523016' }).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([RAW_ROW, { ...RAW_ROW, invoice_number: '9999999999' }]);
@@ -117,7 +134,7 @@ describe('PartsPackingListService', () => {
   it('applies Case/Material as client-side range filters', () => {
     let result: { rows: Record<string, unknown>[] } | undefined;
     service
-      .getEntries('0000010015', { materialFrom: 'TR600000', materialTo: 'TR699999' })
+      .getEntries('10015', 'TSL', { materialFrom: 'TR600000', materialTo: 'TR699999' })
       .subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);

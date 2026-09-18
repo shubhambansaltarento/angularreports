@@ -6,6 +6,7 @@ import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicat
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { PartsPackingListTableComponent } from '../../components/parts-packing-list-table/parts-packing-list-table.component';
 import { PartsPackingListFilterComponent } from '../../filters/parts-packing-list-filter/parts-packing-list-filter.component';
+import { PartsPackingListConfig } from '../../models/parts-packing-list-config.model';
 import { PartsPackingListFilters } from '../../models/parts-packing-list-filters.model';
 import { PartsPackingListService } from '../../services/parts-packing-list.service';
 import { PartsPackingListStore } from '../../store/parts-packing-list.store';
@@ -35,17 +36,22 @@ export class PartsPackingListListComponent {
   private readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly filter = viewChild.required(PartsPackingListFilterComponent);
 
-  protected readonly configLoaded = signal(false);
+  protected readonly config = signal<PartsPackingListConfig | null>(null);
 
   constructor() {
     this.partsPackingListService
       .getConfig()
       .pipe(takeUntilDestroyed())
-      .subscribe(() => this.configLoaded.set(true));
+      .subscribe((config) => this.config.set(config));
   }
 
   protected onSearch(filters: PartsPackingListFilters): void {
-    this.store.search(this.dealerContext().dealerCode, filters);
+    const config = this.config();
+    const dealerCode = config?.context.dealerCode ?? this.dealerContext().dealerCode;
+    const companyCode = (config?.parameters.find((parameter) => parameter.name === 'companyCode')
+      ?.defaultValue as string | undefined) ?? '';
+
+    this.store.search(dealerCode, companyCode, filters);
   }
 
   /** The page's single Process/"Show Report" action — triggers the filter panel's own submit logic. */

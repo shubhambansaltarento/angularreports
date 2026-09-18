@@ -22,10 +22,10 @@ describe('PartsPackingListStore', () => {
     expect(getEntriesSpy).not.toHaveBeenCalled();
   });
 
-  it('search() calls the service with the given dealerCode and filters, and reveals the table', () => {
-    store.search('0000010015', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
+  it('search() calls the service with the given dealerCode/companyCode and filters, and reveals the table', () => {
+    store.search('10015', 'TSL', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
 
-    expect(getEntriesSpy).toHaveBeenCalledWith('0000010015', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
+    expect(getEntriesSpy).toHaveBeenCalledWith('10015', 'TSL', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
     expect(store.hasSearched()).toBe(true);
   });
 
@@ -38,7 +38,7 @@ describe('PartsPackingListStore', () => {
       }),
     );
 
-    store.search('0000010015', {});
+    store.search('10015', 'TSL', {});
 
     expect(store.data()).toEqual([{ id: '0', part_number: 'TR600080' }]);
     expect(store.columns()).toEqual([{ key: 'part_number', header: 'Part Number' }]);
@@ -48,19 +48,19 @@ describe('PartsPackingListStore', () => {
   it('sets an error message and clears loading when the fetch fails', () => {
     getEntriesSpy.mockReturnValue(throwError(() => new Error('boom')));
 
-    store.search('0000010015', {});
+    store.search('10015', 'TSL', {});
 
     expect(store.error()).toBe('Unable to load Parts Packing List entries. Please try again.');
     expect(store.loading()).toBe(false);
   });
 
   it('refresh() re-issues the last search request', () => {
-    store.search('0000010015', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
+    store.search('10015', 'TSL', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
     getEntriesSpy.mockClear();
 
     store.refresh();
 
-    expect(getEntriesSpy).toHaveBeenCalledWith('0000010015', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
+    expect(getEntriesSpy).toHaveBeenCalledWith('10015', 'TSL', { dateFrom: '2026-08-01', dateTo: '2026-09-01' });
   });
 
   it('refresh() does nothing before any search has happened', () => {

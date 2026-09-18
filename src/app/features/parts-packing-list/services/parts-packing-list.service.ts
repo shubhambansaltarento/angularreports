@@ -3,14 +3,18 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import {
-  PARTS_PACKING_LIST_CONFIG_URL,
   PARTS_PACKING_LIST_DATA_URL,
+  PARTS_PACKING_LIST_REPORT_KEY,
 } from '../constants/parts-packing-list.constants';
 import { PartsPackingListConfig } from '../models/parts-packing-list-config.model';
 import { PartsPackingListFilters } from '../models/parts-packing-list-filters.model';
 import { PartsPackingListResponse } from '../models/parts-packing-list-response.model';
 import { PartsPackingListRow } from '../models/parts-packing-list-row.model';
 import { TableColumn } from '../../../shared/ui/data-table/models/table-column.model';
+import { ReportApiService } from '../../../shared/services/report-api/report-api.service';
+
+/** `dealerCode`'s real shape is a 10-digit, zero-padded customer number — same convention as Dealer Ledger's `kunnr`/Warranty Cost's `dealerCode`. */
+const DEALER_CODE_PREFIX = '00000';
 
 /** Converts a raw snake_case field name into a Title Case column header, e.g. `part_description` -> "Part Description". */
 function toTitleCaseHeader(fieldName: string): string {
@@ -32,12 +36,13 @@ function toTitleCaseHeader(fieldName: string): string {
 @Injectable()
 export class PartsPackingListService {
   private readonly http = inject(HttpClient);
+  private readonly reportApi = inject(ReportApiService);
 
-  /** Fetches this report's config once, on page entry — logged only; nothing in the UI is sourced from it. */
+  /** Fetches this report's config once, on page entry — via the generic, report-keyed endpoint (confirmed live, unlike the plain `/parts-packing-list/config` path). */
   getConfig(): Observable<PartsPackingListConfig | null> {
-    console.log('[Parts Packing List] Loading report config...');
+    console.log(`[Parts Packing List] Loading report config for "${PARTS_PACKING_LIST_REPORT_KEY}"...`);
 
-    return this.http.get<PartsPackingListConfig>(PARTS_PACKING_LIST_CONFIG_URL).pipe(
+    return this.reportApi.getConfig<PartsPackingListConfig>(PARTS_PACKING_LIST_REPORT_KEY).pipe(
       tap((config) => console.log('[Parts Packing List] Report config loaded:', config)),
       catchError((error) => {
         console.error('[Parts Packing List] Report config fetch failed.', error);
@@ -48,13 +53,19 @@ export class PartsPackingListService {
 
   /**
    * `dealerCode` is supplied by the caller (this report's own UI never collects it — see
-   * the spec's Open decisions) alongside the filter panel's Date Range. Only
-   * `dealerCode`/`fromDate`/`toDate` are sent to the real API; Invoice/Delivery
+   * the spec's Open decisions) alongside the filter panel's Date Range, and is zero-padded
+   * here before being sent — same convention as Dealer Ledger's `kunnr`/Warranty Cost's
+   * `dealerCode`. `companyCode` is sent alongside it, sourced from config. Invoice/Delivery
    * Number/Case/Material are applied client-side afterward (`applyClientFilters`), since
    * the confirmed API contract does not accept them.
    */
-  getEntries(dealerCode: string, filters: PartsPackingListFilters): Observable<PartsPackingListResponse> {
-    const body = { dealerCode, fromDate: filters.dateFrom ?? '', toDate: filters.dateTo ?? '' };
+  getEntries(dealerCode: string, companyCode: string, filters: PartsPackingListFilters): Observable<PartsPackingListResponse> {
+    const body = {
+      dealerCode: dealerCode ? DEALER_CODE_PREFIX + dealerCode : '',
+      companyCode,
+      fromDate: filters.dateFrom ?? '',
+      toDate: filters.dateTo ?? '',
+    };
     console.log('[Parts Packing List] Loading report data...', body);
 
     return this.http.post<Record<string, unknown>[]>(PARTS_PACKING_LIST_DATA_URL, body).pipe(
