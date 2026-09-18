@@ -14,8 +14,29 @@
 
   @for (group of statement().dealerGroups; track group.dealerCode) {
     <table class="warranty-cost-statement__table">
-      <thead>
-        <tr>
+      <tbody>
+        <tr class="warranty-cost-statement__dealer-row">
+          <td colspan="11">DEALER : {{ group.dealerCode }} &nbsp; {{ group.dealerName }}</td>
+        </tr>
+        @if (group.rows.length > 0) {
+          <tr class="warranty-cost-statement__memo-row warranty-cost-statement__memo-row--label">
+            <td colspan="2">CN MEMO NO.</td>
+            <td colspan="2">DOC DATE</td>
+            <td colspan="2">ORDER NUM</td>
+            <td colspan="2">ORDER DATE</td>
+            <td colspan="2">DLR REF NUM</td>
+            <td colspan="1">REF DATE</td>
+          </tr>
+          <tr class="warranty-cost-statement__memo-row">
+            <td colspan="2">{{ group.rows[0].cnMemoNo }}</td>
+            <td colspan="2">{{ group.rows[0].docDate }}</td>
+            <td colspan="2">{{ group.rows[0].orderNum }}</td>
+            <td colspan="2">{{ group.rows[0].orderDate }}</td>
+            <td colspan="2">{{ group.rows[0].dlrRefNum }}</td>
+            <td colspan="1">{{ group.rows[0].refDate }}</td>
+          </tr>
+        }
+        <tr class="warranty-cost-statement__column-header">
           <th>S.NO</th>
           <th>PART NUMBER</th>
           <th>DESCRIPTION</th>
@@ -27,20 +48,6 @@
           <th>OCTROI</th>
           <th>SERVICE TAX</th>
           <th>TOTAL COST</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (group.rows.length > 0) {
-          <tr class="warranty-cost-statement__memo-row">
-            <td colspan="11">
-              CN MEMO NO. : {{ group.rows[0].cnMemoNo }} &nbsp; DOC DATE : {{ group.rows[0].docDate }} &nbsp;
-              ORDER NUM : {{ group.rows[0].orderNum }} &nbsp; ORDER DATE : {{ group.rows[0].orderDate }} &nbsp;
-              DLR REF NUM : {{ group.rows[0].dlrRefNum }} &nbsp; REF DATE : {{ group.rows[0].refDate }}
-            </td>
-          </tr>
-        }
-        <tr class="warranty-cost-statement__dealer-row">
-          <td colspan="11">DEALER : {{ group.dealerCode }} &nbsp; {{ group.dealerName }}</td>
         </tr>
         @for (row of group.rows; track $index) {
           <tr>

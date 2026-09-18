@@ -37,7 +37,7 @@
     overflow-wrap: break-word;
   }
 
-  thead th {
+  .warranty-cost-statement__column-header th {
     background: #a9c6e8;
     font-weight: 700;
     text-align: center;
@@ -57,6 +57,10 @@
 
 .warranty-cost-statement__memo-row td {
   background: #a9d9a9;
+  text-align: center;
+}
+
+.warranty-cost-statement__memo-row--label td {
   font-weight: 700;
 }
 

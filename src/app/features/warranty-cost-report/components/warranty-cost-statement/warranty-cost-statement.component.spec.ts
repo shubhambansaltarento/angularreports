@@ -93,24 +93,32 @@ describe('WarrantyCostStatementComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('AUTHORISED SIGNATORY');
   });
 
-  it('renders a green memo row between the header and the dealer row, with the shared memo/order fields', () => {
+  it('renders the row order as dealer (purple), then a 2-row memo label/value table (green), then the column headers (blue)', () => {
     const fixture = createComponent();
 
-    const memoRow: HTMLTableRowElement = fixture.nativeElement.querySelector('.warranty-cost-statement__memo-row');
-    expect(memoRow).toBeTruthy();
-    expect(memoRow.textContent).toContain('91048544');
-    expect(memoRow.textContent).toContain('12.09.2026');
-    expect(memoRow.textContent).toContain('64162944');
-    expect(memoRow.textContent).toContain('HOS-44');
+    const rows: HTMLTableRowElement[] = Array.from(fixture.nativeElement.querySelectorAll('tbody > tr'));
+    const dealerRow = rows[0];
+    const memoLabelRow = rows[1];
+    const memoValueRow = rows[2];
+    const columnHeaderRow = rows[3];
 
-    const dealerRow: HTMLTableRowElement = fixture.nativeElement.querySelector('.warranty-cost-statement__dealer-row');
-    expect(memoRow.nextElementSibling).toBe(dealerRow);
+    expect(dealerRow.classList).toContain('warranty-cost-statement__dealer-row');
+    expect(memoLabelRow.classList).toContain('warranty-cost-statement__memo-row--label');
+    expect(memoValueRow.classList).toContain('warranty-cost-statement__memo-row');
+    expect(columnHeaderRow.classList).toContain('warranty-cost-statement__column-header');
+
+    expect(memoLabelRow.textContent).toContain('CN MEMO NO.');
+    expect(memoLabelRow.textContent).toContain('REF DATE');
+    expect(memoValueRow.textContent).toContain('91048544');
+    expect(memoValueRow.textContent).toContain('12.09.2026');
+    expect(memoValueRow.textContent).toContain('64162944');
+    expect(memoValueRow.textContent).toContain('HOS-44');
   });
 
   it('renders exactly the 11 fixed columns (S.NO/Part Number/Description/Quantity/NDP Rate/Excise/Sales Tax/Labour/Octroi/Service Tax/Total Cost), with no memo/order columns', () => {
     const fixture = createComponent();
 
-    const headers: string[] = Array.from(fixture.nativeElement.querySelectorAll('thead th')).map(
+    const headers: string[] = Array.from(fixture.nativeElement.querySelectorAll('.warranty-cost-statement__column-header th')).map(
       (th) => (th as HTMLElement).textContent?.trim(),
     );
     expect(headers).toEqual([
