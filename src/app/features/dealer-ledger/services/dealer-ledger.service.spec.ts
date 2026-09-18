@@ -1,9 +1,13 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { DealerLedgerService } from './dealer-ledger.service';
 import { DealerLedgerMockService } from './dealer-ledger-mock.service';
 import { DealerLedgerRequest } from '../models/dealer-ledger-request.model';
 import { ReportApiService } from '../../../shared/services/report-api/report-api.service';
+
+const DATABRICKS_URL = 'http://localhost:8080/dealer-ledger/fetch-data-bricks-data';
 
 const BASE_REQUEST: DealerLedgerRequest = {
   page: 1,
@@ -18,153 +22,102 @@ const BASE_REQUEST: DealerLedgerRequest = {
 };
 
 describe('DealerLedgerService', () => {
-  let getDataSpy: ReturnType<typeof vi.fn>;
   let service: DealerLedgerService;
+  let httpMock: HttpTestingController;
+  let mockListSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    getDataSpy = vi.fn().mockReturnValue(
-      of({
-        reportCode: 'DEALER_LEDGER',
-        configVersion: '2026.08.1',
-        effectiveColumns: [],
-        rows: [],
-        totals: { debit: 0, credit: 0 },
-        paging: { page: 1, pageSize: 10, totalRows: 0, totalPages: 1 },
-      }),
+    mockListSpy = vi.fn().mockReturnValue(
+      of({ rows: [], totalCount: 0, summary: { totalDebit: 0, totalCredit: 0, closingBalance: 0, entryCount: 0 } }),
     );
 
     TestBed.configureTestingModule({
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         DealerLedgerService,
-        DealerLedgerMockService,
-        { provide: ReportApiService, useValue: { getConfig: vi.fn(), getData: getDataSpy } },
+        { provide: DealerLedgerMockService, useValue: { list: mockListSpy } },
+        { provide: ReportApiService, useValue: { getConfig: vi.fn(), getData: vi.fn() } },
       ],
     });
 
     service = TestBed.inject(DealerLedgerService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  it('sends every "Include Details" checkbox as its own boolean parameter, per the current selection', () => {
-    service
-      .getEntries({
-        ...BASE_REQUEST,
-        filters: {
-          ...BASE_REQUEST.filters,
-          withOeDetails: false,
-          withSpDetails: false,
-          withAcDetails: true,
-          withEvDetails: true,
-          withAcwshDetails: false,
-        },
-      })
-      .subscribe();
-
-    expect(getDataSpy).toHaveBeenCalledTimes(1);
-    const [, apiRequest] = getDataSpy.mock.calls[0];
-    expect(apiRequest.parameters).toMatchObject({
-      withOeDetails: false,
-      withSpDetails: false,
-      withAcDetails: true,
-      withEvDetails: true,
-      withAcwshDetails: false,
-    });
+  afterEach(() => {
+    httpMock.verify();
+    TestBed.resetTestingModule();
   });
 
-  it('defaults every checkbox flag to false (not omitted) when none are set on the filters', () => {
+  it('sends bukrs/kunnr/fromDate/limit as the request query parameters, with kunnr always zero-padded with a 00000 prefix', () => {
     service.getEntries(BASE_REQUEST).subscribe();
 
-    const [, apiRequest] = getDataSpy.mock.calls[0];
-    expect(apiRequest.parameters.withOeDetails).toBe(false);
-    expect(apiRequest.parameters.withSpDetails).toBe(false);
-    expect(apiRequest.parameters.withAcDetails).toBe(false);
-    expect(apiRequest.parameters.withEvDetails).toBe(false);
-    expect(apiRequest.parameters.withAcwshDetails).toBe(false);
-  });
-
-  it('sends dealerCode inside parameters, not at the request top level (backend-adds-checkbox-support-16-09-2026-05_24_PM — now a declared config parameter)', () => {
-    service.getEntries(BASE_REQUEST).subscribe();
-
-    const [, apiRequest] = getDataSpy.mock.calls[0];
-    expect(apiRequest.parameters.dealerCode).toBe('DLR-1');
-    expect(apiRequest.dealerCode).toBeUndefined();
-  });
-
-  it('passes effectiveColumns through as objects (columnName/isDefault), not flattened to strings (effective-columns-shape-change-17-09-2026-05_41_AM.md)', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'DEALER_LEDGER',
-        configVersion: '2026.08.1',
-        effectiveColumns: [
-          { columnName: 'dealerCode', isDefault: true },
-          { columnName: 'textDec', isDefault: false },
-        ],
-        rows: [],
-        totals: { debit: 0, credit: 0 },
-        paging: { page: 1, pageSize: 10, totalRows: 0, totalPages: 1 },
-      }),
+    const req = httpMock.expectOne(
+      (request) => request.url === DATABRICKS_URL,
     );
+    expect(req.request.params.get('bukrs')).toBe('TVSL');
+    expect(req.request.params.get('kunnr')).toBe('00000DLR-1');
+    expect(req.request.params.get('fromDate')).toBe('2026-08-01');
+    expect(req.request.params.get('limit')).toBe('5000');
+    req.flush([]);
+  });
 
-    let result: { effectiveColumns?: { columnName: string; isDefault: boolean }[] } | undefined;
+  it('maps the flat Databricks row array onto DealerLedgerRow', () => {
+    let result: { rows: { dealerCode: string; debitAmount: number; creditAmount: number }[] } | undefined;
     service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
 
-    expect(result?.effectiveColumns).toEqual([
-      { columnName: 'dealerCode', isDefault: true },
-      { columnName: 'textDec', isDefault: false },
+    const req = httpMock.expectOne((request) => request.url === DATABRICKS_URL);
+    req.flush([
+      {
+        dealer_code: '0000010015',
+        dealer_name: 'PAVAN SEKHAR AUTOMOBILES',
+        dealer_address: 'DOOR NO.8-12',
+        credit_control_area: 'MS',
+        doc_type: 'AB',
+        doc_reference_no: '0104023388',
+        doc_date: '2026-08-16T18:30:00.000Z',
+        assignment: null,
+        narration_veh_descr: '',
+        text_f: null,
+        currency: 'INR',
+        debit_amount: 0,
+        credit_amount: 284250.25,
+        vehicle_text: null,
+        amount: null,
+        running_balance: -265123394.41,
+      },
+    ]);
+
+    expect(result?.rows).toEqual([
+      expect.objectContaining({
+        dealerCode: '0000010015',
+        dealerName: 'PAVAN SEKHAR AUTOMOBILES',
+        creditAmount: 284250.25,
+        debitAmount: 0,
+      }),
     ]);
   });
 
-  it('normalizes a DD-MM-YYYY docDate from the backend to ISO 8601, so DatePipe can render it (doc-date-dd-mm-yyyy-format-17-09-2026-12_00_AM)', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'DEALER_LEDGER',
-        configVersion: '2026.08.1',
-        effectiveColumns: [],
-        rows: [{ docDate: '17-06-2026' }],
-        totals: { debit: 0, credit: 0 },
-        paging: { page: 1, pageSize: 10, totalRows: 1, totalPages: 1 },
-      }),
-    );
-
-    let result: { rows: { docDate: string }[] } | undefined;
-    service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
-
-    expect(result?.rows[0].docDate).toBe('2026-06-17');
-  });
-
   it('assigns every row in a multi-row response a distinct, stable id (spec-table-pagination-forward-backward-integrity.md)', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'DEALER_LEDGER',
-        configVersion: '2026.08.1',
-        effectiveColumns: [],
-        rows: Array.from({ length: 40 }, (_, index) => ({ dealerCode: `DLR-${index}` })),
-        totals: { debit: 0, credit: 0 },
-        paging: { page: 1, pageSize: 10, totalRows: 40, totalPages: 4 },
-      }),
-    );
-
     let result: { rows: { id: string }[] } | undefined;
     service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
+
+    const req = httpMock.expectOne((request) => request.url === DATABRICKS_URL);
+    req.flush(Array.from({ length: 40 }, (_, index) => ({ dealer_code: `DLR-${index}` })));
 
     const ids = result?.rows.map((row) => row.id) ?? [];
     expect(new Set(ids).size).toBe(40);
   });
 
-  it('leaves an already-ISO or unrecognized docDate format unchanged', () => {
-    getDataSpy.mockReturnValue(
-      of({
-        reportCode: 'DEALER_LEDGER',
-        configVersion: '2026.08.1',
-        effectiveColumns: [],
-        rows: [{ docDate: '2026-06-17' }],
-        totals: { debit: 0, credit: 0 },
-        paging: { page: 1, pageSize: 10, totalRows: 1, totalPages: 1 },
-      }),
-    );
-
-    let result: { rows: { docDate: string }[] } | undefined;
+  it('falls back to mock data when the Databricks call fails', () => {
+    let result: { rows: unknown[] } | undefined;
     service.getEntries(BASE_REQUEST).subscribe((response) => (result = response));
 
-    expect(result?.rows[0].docDate).toBe('2026-06-17');
+    const req = httpMock.expectOne((request) => request.url === DATABRICKS_URL);
+    req.error(new ProgressEvent('error'));
+
+    expect(mockListSpy).toHaveBeenCalledWith(BASE_REQUEST);
+    expect(result?.rows).toEqual([]);
   });
 });

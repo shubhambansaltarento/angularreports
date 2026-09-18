@@ -42,22 +42,3 @@
   font-size: 0.8rem;
 }
 
-.dealer-ledger-filter__submit-row {
-  display: flex;
-  justify-content: flex-start;
-}
-
-// Smaller than the btn-sm baseline, matching the shared table's own reduced button
-// sizing — date-range-label-grey-show-report-button-17-09-2026-06_15_AM.md.
-// Grey background by default (not just on hover, which is `btn-outline-secondary`'s
-// normal behavior) — shorter-date-pickers-and-grey-show-report-bg-17-09-2026-06_18_AM.md.
-.dealer-ledger-filter__submit-button {
-  border-radius: 0;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.8125rem;
-  background: #e9ecef;
-
-  &:hover:not(:disabled) {
-    background: #dde1e4;
-  }
-}

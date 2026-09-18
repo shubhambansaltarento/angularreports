@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
+import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { DealerLedgerTableComponent } from '../../components/dealer-ledger-table/dealer-ledger-table.component';
 import { DealerLedgerToolbarComponent } from '../../components/dealer-ledger-toolbar/dealer-ledger-toolbar.component';
 import { DealerLedgerFilterComponent } from '../../filters/dealer-ledger-filter/dealer-ledger-filter.component';
@@ -47,7 +48,7 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
  */
 @Component({
   selector: 'app-dealer-ledger-list',
-  imports: [DealerLedgerToolbarComponent, BreadcrumbComponent, DealerLedgerFilterComponent, DealerLedgerTableComponent],
+  imports: [DealerLedgerToolbarComponent, BreadcrumbComponent, DealerLedgerFilterComponent, DealerLedgerTableComponent, DismissibleAlertComponent],
   templateUrl: './dealer-ledger-list.component.html',
   styleUrl: './dealer-ledger-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,6 +90,11 @@ export class DealerLedgerListComponent {
 
   protected onReset(): void {
     this.store.reset();
+  }
+
+  /** The page's single "Show Report" action — triggers the filter panel's own submit logic (validates the Date Range, then emits `searched`). */
+  protected onShowReport(): void {
+    this.filter().submit();
   }
 
   /** Retries the last fetch after an error, keeping whatever filters/sort/page were active. */

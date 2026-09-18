@@ -8,13 +8,13 @@
   <app-warranty-reconciliation-filter [config]="config()" (searched)="onSearch($event)" />
 
   @if (store.error(); as error) {
-    <div class="warranty-reconciliation-list__error" role="alert">
-      <p>{{ error }}</p>
-      <button type="button" (click)="store.refresh()">Retry</button>
+    <div class="warranty-reconciliation-list__error">
+      <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
+      <button type="button" class="__retry-btn" (click)="store.refresh()">Retry</button>
     </div>
   }
 
-  @if (store.hasSearched()) {
+  @if (store.hasSearched() && store.data().length > 0) {
     <app-warranty-reconciliation-table
       class="warranty-reconciliation-list__table"
       [rows]="store.data()"

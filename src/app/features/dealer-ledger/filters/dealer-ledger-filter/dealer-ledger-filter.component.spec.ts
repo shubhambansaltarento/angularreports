@@ -53,10 +53,11 @@ describe('DealerLedgerFilterComponent', () => {
     expect(fixture.nativeElement.querySelector(`#${labelledBy}`)?.textContent).toContain('Include Details');
   });
 
-  it('renders no Search/Export/Reset action row of its own — those live in the table header', () => {
+  it('renders no Search/Export/Reset/Submit action row of its own — Show Report lives on the page, Export/Reset in the table header', () => {
     const fixture = createComponent();
     expect(fixture.nativeElement.querySelector('.dealer-ledger-filter__actions')).toBeFalsy();
     expect(fixture.nativeElement.querySelector('.dealer-ledger-filter__reset-row')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('.dealer-ledger-filter__submit-row')).toBeFalsy();
   });
 
   it('defaults the Report Range to a 1-month window ending today', () => {
@@ -92,7 +93,7 @@ describe('DealerLedgerFilterComponent', () => {
     expect(emitted).toBe(false);
   });
 
-  it('emits searched with the current checkbox selection only on Submit click', () => {
+  it('emits searched with the current checkbox selection only when submit() is called (the page\'s "Show Report" button)', () => {
     const fixture = createComponent();
     let emitted: DealerLedgerFilterValue | undefined;
     fixture.componentInstance.searched.subscribe((value: DealerLedgerFilterValue) => (emitted = value));
@@ -105,16 +106,13 @@ describe('DealerLedgerFilterComponent', () => {
 
     expect(emitted).toBeUndefined();
 
-    const submitButton: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.dealer-ledger-filter__submit-button',
-    );
-    submitButton.click();
+    fixture.componentInstance.submit();
 
     expect(emitted).toBeTruthy();
     expect(emitted?.checkboxSelection).toEqual(['oe']);
   });
 
-  it('disables Submit and does not emit searched when the date range is invalid', () => {
+  it('reports submit as disabled and does not emit searched when the date range is invalid', () => {
     const fixture = createComponent();
     let emitted = false;
     fixture.componentInstance.searched.subscribe(() => (emitted = true));
@@ -127,12 +125,9 @@ describe('DealerLedgerFilterComponent', () => {
     dateTo.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    const submitButton: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.dealer-ledger-filter__submit-button',
-    );
-    expect(submitButton.disabled).toBe(true);
+    expect(fixture.componentInstance.isSubmitDisabled()).toBe(true);
 
-    submitButton.click();
+    fixture.componentInstance.submit();
     expect(emitted).toBe(false);
   });
 });

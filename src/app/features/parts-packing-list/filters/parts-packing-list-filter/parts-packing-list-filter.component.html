@@ -1,0 +1,51 @@
+<div class="parts-packing-list-filter" [formGroup]="form">
+  <div class="row g-3">
+    <div class="col-6">
+      <app-typeahead-input
+        inputId="parts-packing-list-invoice-number"
+        label="Invoice Number"
+        placeholder="Enter invoice number"
+        [compact]="true"
+        formControlName="invoiceNumber"
+      />
+    </div>
+    <div class="col-6">
+      <app-typeahead-input
+        inputId="parts-packing-list-delivery-number"
+        label="Delivery Number"
+        placeholder="Enter delivery number"
+        [compact]="true"
+        formControlName="deliveryNumber"
+      />
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-6">
+      <label class="form-label parts-packing-list-filter__label" for="parts-packing-list-case-from">Case From</label>
+      <input id="parts-packing-list-case-from" type="date" class="form-control form-control-sm" formControlName="caseFrom" />
+    </div>
+    <div class="col-6">
+      <label class="form-label parts-packing-list-filter__label" for="parts-packing-list-case-to">Case To</label>
+      <input id="parts-packing-list-case-to" type="date" class="form-control form-control-sm" formControlName="caseTo" />
+    </div>
+
+    <div class="col-6">
+      <label class="form-label parts-packing-list-filter__label" for="parts-packing-list-material-from">Material From</label>
+      <input id="parts-packing-list-material-from" type="date" class="form-control form-control-sm" formControlName="materialFrom" />
+    </div>
+    <div class="col-6">
+      <label class="form-label parts-packing-list-filter__label" for="parts-packing-list-material-to">Material To</label>
+      <input id="parts-packing-list-material-to" type="date" class="form-control form-control-sm" formControlName="materialTo" />
+    </div>
+
+    <div class="col-6">
+      <label class="form-label parts-packing-list-filter__label" for="parts-packing-list-date-from">Date From</label>
+      <input id="parts-packing-list-date-from" type="date" class="form-control form-control-sm" formControlName="dateFrom" />
+    </div>
+    <div class="col-6">
+      <label class="form-label parts-packing-list-filter__label" for="parts-packing-list-date-to">Date To</label>
+      <input id="parts-packing-list-date-to" type="date" class="form-control form-control-sm" formControlName="dateTo" />
+    </div>
+  </div>
+</div>

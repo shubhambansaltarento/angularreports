@@ -105,6 +105,11 @@ export class WarrantyReconciliationStore {
     this.fetch();
   }
 
+  /** Clears the current error — called when the shared alert banner is dismissed (manually or on its auto-dismiss timer). */
+  dismissError(): void {
+    this._error.set(null);
+  }
+
   // ---- Internal -------------------------------------------------------------------------
 
   private fetch(): void {
