@@ -7,4 +7,4 @@
  * the same fixed, high `limit`, independent of any report's own UI page size, per
  * databricks-fetch-limit-shared-constant-and-endpoint-rename-18-09-2026-*.md.
  */
-export const DATABRICKS_FETCH_LIMIT = 5000;
+export const DATABRICKS_FETCH_LIMIT = 2000;
