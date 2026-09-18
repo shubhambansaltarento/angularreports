@@ -23,7 +23,9 @@
     </div>
   }
 
-  @if (store.hasSearched() && store.statement(); as statement) {
+  @if (store.loading()) {
+    <app-loading-indicator />
+  } @else if (store.hasSearched() && store.statement(); as statement) {
     @if (statement.dealerGroups.length > 0) {
       <app-html-pdf-viewer class="warranty-cost-report-list__viewer" title="Warranty Cost Statement" filename="warranty-cost-statement">
         <app-warranty-cost-statement [statement]="statement" [dateFrom]="dateFrom" [dateTo]="dateTo" />

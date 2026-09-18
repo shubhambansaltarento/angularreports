@@ -62,6 +62,16 @@ describe('WarrantyReconciliationListComponent', () => {
     expect(fixture.nativeElement.querySelector('app-warranty-reconciliation-filter')).toBeTruthy();
   });
 
+  it('shows the loading indicator (and no table) while store.loading() is true', () => {
+    const fixture = createComponent();
+    (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);
+    (storeStub.loading as ReturnType<typeof signal<boolean>>).set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-loading-indicator')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-warranty-reconciliation-table')).toBeFalsy();
+  });
+
   it('does not render the table before the first Submit, and renders it once store.hasSearched becomes true and there is at least one row', () => {
     const fixture = createComponent();
     expect(fixture.nativeElement.querySelector('app-warranty-reconciliation-table')).toBeFalsy();

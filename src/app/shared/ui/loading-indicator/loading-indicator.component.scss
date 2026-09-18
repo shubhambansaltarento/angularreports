@@ -1,0 +1,26 @@
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: #495057;
+}
+
+.loading-indicator__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #ced4da;
+  border-top-color: #495057;
+  border-radius: 50%;
+  animation: loading-indicator-spin 0.6s linear infinite;
+}
+
+.loading-indicator__message {
+  font-size: 0.875rem;
+}
+
+@keyframes loading-indicator-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -26,7 +26,9 @@
     </div>
   }
 
-  @if (store.hasSearched() && store.data().length > 0) {
+  @if (store.loading()) {
+    <app-loading-indicator />
+  } @else if (store.hasSearched() && store.data().length > 0) {
     <app-dealer-ledger-table
       class="dealer-ledger-list__table"
       [rows]="store.data()"

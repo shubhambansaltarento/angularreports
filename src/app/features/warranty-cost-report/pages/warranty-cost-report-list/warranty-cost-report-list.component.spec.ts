@@ -72,6 +72,16 @@ describe('WarrantyCostReportListComponent', () => {
     expect(fixture.nativeElement.querySelector('app-html-pdf-viewer')).toBeFalsy();
   });
 
+  it('shows the loading indicator (and no viewer) while store.loading() is true', () => {
+    const fixture = createComponent();
+    (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);
+    (storeStub.loading as ReturnType<typeof signal<boolean>>).set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-loading-indicator')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-html-pdf-viewer')).toBeFalsy();
+  });
+
   it('renders the statement inside the shared viewer once hasSearched is true and dealerGroups is non-empty', () => {
     const fixture = createComponent();
     (storeStub.hasSearched as ReturnType<typeof signal<boolean>>).set(true);

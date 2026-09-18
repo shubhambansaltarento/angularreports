@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { HtmlPdfViewerComponent } from '../../../../shared/ui/html-pdf-viewer/html-pdf-viewer.component';
+import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
 import { WarrantyCostStatementComponent } from '../../components/warranty-cost-statement/warranty-cost-statement.component';
 import { WarrantyCostReportFilterComponent } from '../../filters/warranty-cost-report-filter/warranty-cost-report-filter.component';
 import { WarrantyCostConfig } from '../../models/warranty-cost-config.model';
@@ -20,7 +21,7 @@ import { WarrantyCostStore } from '../../store/warranty-cost.store';
  */
 @Component({
   selector: 'app-warranty-cost-report-list',
-  imports: [BreadcrumbComponent, WarrantyCostReportFilterComponent, WarrantyCostStatementComponent, HtmlPdfViewerComponent, DismissibleAlertComponent],
+  imports: [BreadcrumbComponent, WarrantyCostReportFilterComponent, WarrantyCostStatementComponent, HtmlPdfViewerComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './warranty-cost-report-list.component.html',
   styleUrl: './warranty-cost-report-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
