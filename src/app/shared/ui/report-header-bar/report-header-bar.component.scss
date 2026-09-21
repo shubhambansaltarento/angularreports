@@ -1,0 +1,44 @@
+@use '../../styles/tokens' as tokens;
+
+:host {
+  display: block;
+}
+
+.report-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: tokens.$report-header-blue;
+  color: tokens.$report-header-blue-text;
+  padding: 0.5rem 1rem;
+}
+
+.report-header-bar__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.report-header-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.report-header-bar__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.report-header-bar__action:hover {
+  opacity: 0.85;
+}

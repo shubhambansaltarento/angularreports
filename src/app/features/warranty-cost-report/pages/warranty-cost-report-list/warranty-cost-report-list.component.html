@@ -1,15 +1,12 @@
 <div class="warranty-cost-report-list">
-  <header class="warranty-cost-report-list__header">
-    <h1>{{ title }}</h1>
-  </header>
-
-  <app-breadcrumb [currentLabel]="title" />
+  <app-report-header-bar [title]="title" />
+  <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
   <app-warranty-cost-report-filter [config]="config()" (searched)="onSearch($event)" />
 
   <button
     type="button"
-    class="warranty-cost-report-list__show-report-btn btn btn-sm btn-secondary"
+    class="warranty-cost-report-list__show-report-btn btn btn-sm"
     [disabled]="filter().isSubmitDisabled()"
     (click)="onShowReport()"
   >

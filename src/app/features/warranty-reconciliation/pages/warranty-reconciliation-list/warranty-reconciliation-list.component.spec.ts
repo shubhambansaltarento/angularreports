@@ -50,15 +50,10 @@ describe('WarrantyReconciliationListComponent', () => {
     expect(searchSpy).not.toHaveBeenCalled();
   });
 
-  it('renders the centered header, breadcrumb, and filter', () => {
+  it('renders the header bar and filter', () => {
     const fixture = createComponent();
 
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Warranty Reconciliation');
-
-    const breadcrumb: HTMLElement = fixture.nativeElement.querySelector('app-breadcrumb');
-    expect(breadcrumb).toBeTruthy();
-    expect(breadcrumb.textContent).toContain('Warranty Reconciliation');
-
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('Warranty Reconciliation');
     expect(fixture.nativeElement.querySelector('app-warranty-reconciliation-filter')).toBeTruthy();
   });
 

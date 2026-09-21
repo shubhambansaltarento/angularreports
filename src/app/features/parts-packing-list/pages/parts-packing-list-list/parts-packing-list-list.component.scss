@@ -11,21 +11,22 @@
 
 .parts-packing-list-list__card {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 620px;
-  margin: 0 auto;
-}
-
-.parts-packing-list-list__title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
   text-align: left;
 }
 
 .parts-packing-list-list__show-report-btn {
-  align-self: flex-start;
+  align-self: flex-end;
+  background-color: rgb(47, 92, 138);
+  border-color: rgb(47, 92, 138);
+  color: #fff;
+}
+
+.parts-packing-list-list__show-report-btn:hover:not(:disabled) {
+  background-color: rgb(37, 74, 111);
+  border-color: rgb(37, 74, 111);
 }
 
 .parts-packing-list-list__error {

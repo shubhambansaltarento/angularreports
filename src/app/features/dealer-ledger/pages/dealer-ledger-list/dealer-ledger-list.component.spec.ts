@@ -51,11 +51,11 @@ describe('DealerLedgerListComponent', () => {
     return fixture;
   }
 
-  it('renders a breadcrumb below the toolbar, trailing with "Dealer Ledger" (breadcrumbs-and-dealer-ledger-style-headers-17-09-2026-07_17_AM.md)', () => {
+  it('renders the report header bar with "Dealer Ledger"', () => {
     const fixture = createComponent();
-    const breadcrumb: HTMLElement = fixture.nativeElement.querySelector('app-breadcrumb');
-    expect(breadcrumb).toBeTruthy();
-    expect(breadcrumb.textContent).toContain('Dealer Ledger');
+    const headerBar: HTMLElement = fixture.nativeElement.querySelector('app-report-header-bar');
+    expect(headerBar).toBeTruthy();
+    expect(headerBar.textContent).toContain('Dealer Ledger');
   });
 
   it('creates without fetching any data — config is fetched, but no search/load happens automatically', () => {
@@ -91,10 +91,9 @@ describe('DealerLedgerListComponent', () => {
     );
     const fixture = createComponent();
 
-    const dealerCodeText: HTMLElement = fixture.nativeElement.querySelector('#report-search-bar-dealer-code');
-    expect(dealerCodeText.textContent?.trim()).toBe('1130');
-    const companyCodeText: HTMLElement = fixture.nativeElement.querySelector('#report-search-bar-company-code');
-    expect(companyCodeText.textContent?.trim()).toBe('TVSL');
+    const identity: HTMLElement = fixture.nativeElement.querySelector('app-report-dealer-identity');
+    expect(identity.textContent).toContain('1130');
+    expect(identity.textContent).toContain('PAWAN SARKAR AUTOMOBILES');
 
     expect(fixture.componentInstance['exportFormats']()).toEqual(['excel', 'pdf']);
   });

@@ -123,7 +123,7 @@ describe('ReportSearchBarComponent', () => {
     expect(fixture.componentInstance.isDateRangeInvalid()).toBe(false);
   });
 
-  it('renders Dealer Code, Dealer Description, and Company Code as read-only text when readonlyDealerFields is set', () => {
+  it('renders no Dealer Code/Description/Company Code fields when readonlyDealerFields is set — that identity is now shown by ReportDealerIdentityComponent above the page, not this form (dealer-identity-line-below-header-bar-21-09-2026-05_00_PM.md)', () => {
     const fixture = createComponent();
     fixture.componentRef.setInput('initialValue', {
       dealerCode: 'DLR-1',
@@ -133,35 +133,9 @@ describe('ReportSearchBarComponent', () => {
     fixture.componentRef.setInput('readonlyDealerFields', true);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code').tagName).not.toBe('INPUT');
-    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code').textContent.trim()).toBe('DLR-1');
-    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-description').tagName).not.toBe('INPUT');
-    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-description').textContent.trim()).toBe(
-      'Some Dealer',
-    );
-    expect(fixture.nativeElement.querySelector('#report-search-bar-company-code').tagName).not.toBe('INPUT');
-    expect(fixture.nativeElement.querySelector('#report-search-bar-company-code').textContent.trim()).toBe('CO-1');
-  });
-
-  it('renders read-only identity fields inside a single shared row/box, not three separate cards (header-center-align-single-row-identity-fields-17-09-2026-06_05_AM.md)', () => {
-    const fixture = createComponent();
-    fixture.componentRef.setInput('initialValue', {
-      dealerCode: 'DLR-1',
-      dealerDescription: 'Some Dealer',
-      companyCode: 'CO-1',
-    });
-    fixture.componentRef.setInput('readonlyDealerFields', true);
-    fixture.detectChanges();
-
-    const groups = fixture.nativeElement.querySelectorAll('.report-search-bar__identity-group');
-    expect(groups.length).toBe(1);
-
-    const cols = groups[0].querySelectorAll('.report-search-bar__identity-col');
-    expect(cols.length).toBe(3);
-    for (const col of Array.from(cols)) {
-      expect((col as HTMLElement).querySelector('.report-search-bar__card-label')).toBeTruthy();
-      expect((col as HTMLElement).querySelector('.report-search-bar__card-value')).toBeTruthy();
-    }
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-description')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('#report-search-bar-company-code')).toBeFalsy();
   });
 
   it('patch() updates a subset of fields without touching the rest', () => {

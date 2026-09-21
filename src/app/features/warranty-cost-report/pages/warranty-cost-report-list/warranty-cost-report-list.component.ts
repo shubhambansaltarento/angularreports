@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
+import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { HtmlPdfViewerComponent } from '../../../../shared/ui/html-pdf-viewer/html-pdf-viewer.component';
 import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
+import { ReportDealerIdentityComponent } from '../../../../shared/ui/report-dealer-identity/report-dealer-identity.component';
+import { ReportHeaderBarComponent } from '../../../../shared/ui/report-header-bar/report-header-bar.component';
 import { WarrantyCostStatementComponent } from '../../components/warranty-cost-statement/warranty-cost-statement.component';
 import { WarrantyCostReportFilterComponent } from '../../filters/warranty-cost-report-filter/warranty-cost-report-filter.component';
 import { WarrantyCostConfig } from '../../models/warranty-cost-config.model';
@@ -21,7 +23,7 @@ import { WarrantyCostStore } from '../../store/warranty-cost.store';
  */
 @Component({
   selector: 'app-warranty-cost-report-list',
-  imports: [BreadcrumbComponent, WarrantyCostReportFilterComponent, WarrantyCostStatementComponent, HtmlPdfViewerComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
+  imports: [ReportHeaderBarComponent, ReportDealerIdentityComponent, WarrantyCostReportFilterComponent, WarrantyCostStatementComponent, HtmlPdfViewerComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './warranty-cost-report-list.component.html',
   styleUrl: './warranty-cost-report-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,9 +32,13 @@ export class WarrantyCostReportListComponent {
   protected readonly title = 'Warranty Cost Report';
   protected readonly store = inject(WarrantyCostStore);
   private readonly warrantyCostService = inject(WarrantyCostService);
+  private readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly filter = viewChild.required(WarrantyCostReportFilterComponent);
 
   protected readonly config = signal<WarrantyCostConfig | null>(null);
+
+  protected readonly dealerCode = computed(() => this.config()?.context.dealerCode ?? this.dealerContext().dealerCode);
+  protected readonly dealerName = computed(() => this.config()?.context.dealerDescription ?? this.dealerContext().dealerDescription);
 
   private lastFilters: WarrantyCostFilters | null = null;
 

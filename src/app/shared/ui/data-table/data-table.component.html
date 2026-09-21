@@ -8,6 +8,16 @@
     </div>
 
     <div class="data-table__toolbar-actions">
+      <label class="data-table__page-size">
+        Show
+        <select class="data-table__page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+          @for (option of pageSizeOptions(); track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select>
+        entries
+      </label>
+
       <input
         class="data-table__search data-table__pill-input form-control form-control-sm"
         type="search"
@@ -141,6 +151,7 @@
               aria-label="Select row"
             />
           </td>
+          <td cdk-footer-cell *cdkFooterCellDef class="data-table__select-cell"></td>
         </ng-container>
       }
 
@@ -175,11 +186,17 @@
               {{ row[column.key] }}
             }
           </td>
+          <td cdk-footer-cell *cdkFooterCellDef [style.text-align]="column.align ?? 'start'">
+            {{ totals()?.[column.key] ?? '' }}
+          </td>
         </ng-container>
       }
 
       <tr cdk-header-row *cdkHeaderRowDef="displayedColumnKeys(); sticky: true"></tr>
       <tr cdk-row *cdkRowDef="let row; columns: displayedColumnKeys()"></tr>
+      @if (totals()) {
+        <tr cdk-footer-row *cdkFooterRowDef="displayedColumnKeys()"></tr>
+      }
     </table>
 
     @if (isInitialLoading()) {

@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, viewChild } from '@angular/core';
 import { CommonReportSearchFilters } from '../../models/report-search-filters.model';
 import { DealerContextService } from '../../services/dealer-context/dealer-context.service';
-import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
+import { ReportDealerIdentityComponent } from '../report-dealer-identity/report-dealer-identity.component';
+import { ReportHeaderBarComponent } from '../report-header-bar/report-header-bar.component';
 import { ReportSearchBarComponent } from '../report-search-bar/report-search-bar.component';
 
 /**
@@ -13,7 +14,7 @@ import { ReportSearchBarComponent } from '../report-search-bar/report-search-bar
  */
 @Component({
   selector: 'app-report-search-only-page',
-  imports: [ReportSearchBarComponent, BreadcrumbComponent],
+  imports: [ReportSearchBarComponent, ReportHeaderBarComponent, ReportDealerIdentityComponent],
   templateUrl: './report-search-only-page.component.html',
   styleUrl: './report-search-only-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,7 +23,7 @@ export class ReportSearchOnlyPageComponent {
   readonly title = input('');
   readonly description = input('');
 
-  private readonly dealerContext = inject(DealerContextService).dealerContext;
+  protected readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly searchBar = viewChild.required(ReportSearchBarComponent);
 
   /** Prefills the common search fields from the current dealer's context (mocked auth API). */

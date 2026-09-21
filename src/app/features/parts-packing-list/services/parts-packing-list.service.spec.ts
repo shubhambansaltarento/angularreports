@@ -130,17 +130,4 @@ describe('PartsPackingListService', () => {
     expect(result?.rows.length).toBe(1);
     expect(result?.rows[0]['invoice_number']).toBe('3005523016');
   });
-
-  it('applies Case/Material as client-side range filters', () => {
-    let result: { rows: Record<string, unknown>[] } | undefined;
-    service
-      .getEntries('10015', 'TSL', { materialFrom: 'TR600000', materialTo: 'TR699999' })
-      .subscribe((response) => (result = response));
-
-    const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
-    req.flush([RAW_ROW, { ...RAW_ROW, part_number: 'ZZ999999' }]);
-
-    expect(result?.rows.length).toBe(1);
-    expect(result?.rows[0]['part_number']).toBe('TR600080');
-  });
 });

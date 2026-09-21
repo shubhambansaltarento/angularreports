@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { WarrantyReconciliationFilterComponent } from './warranty-reconciliation-filter.component';
-import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 
 describe('WarrantyReconciliationFilterComponent', () => {
   beforeEach(async () => {
@@ -28,32 +27,11 @@ describe('WarrantyReconciliationFilterComponent', () => {
     expect(fixture.nativeElement.querySelector('#report-search-bar-company-code')).toBeFalsy();
   });
 
-  it('prefills Dealer Code/Description from the dealer context', () => {
+  it('renders no Dealer Code/Description fields of its own — that identity is shown by ReportDealerIdentityComponent above the page (dealer-identity-line-below-header-bar-21-09-2026-05_00_PM.md)', () => {
     const fixture = createComponent();
-    const dealerContext = TestBed.inject(DealerContextService).dealerContext();
 
-    expect(fixture.nativeElement.textContent).toContain(dealerContext.dealerCode);
-    expect(fixture.nativeElement.textContent).toContain(dealerContext.dealerDescription);
-  });
-
-  it('prefers the real config context/Company Code default over the mocked dealer context, once loaded', () => {
-    const fixture = createComponent();
-    fixture.componentRef.setInput('config', {
-      reportCode: 'WARRANTY_RECONCILLATION',
-      title: 'Warranty Reconcillation',
-      configVersion: '2026.09.1',
-      context: { dealerCode: '10015', dealerDescription: 'PAWAN SARKAR AUTOMOBILES' },
-      parameters: [
-        { name: 'companyCode', label: 'Company Code', control: 'SELECT', dataType: 'STRING', required: true, defaultValue: 'TVSL', options: null, layout: null, multiple: null, lookup: null },
-      ],
-      columnGroups: [],
-      export: { formats: ['XLSX', 'PDF'] },
-      paging: { defaultPageSize: 50, maxPageSize: 1000 },
-    });
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('10015');
-    expect(fixture.nativeElement.textContent).toContain('PAWAN SARKAR AUTOMOBILES');
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-description')).toBeFalsy();
   });
 
   it('enables Show Report by default — Reconciliation Date defaults to the last 1 month (default-one-month-date-range-17-09-2026-09_00_AM.md)', () => {

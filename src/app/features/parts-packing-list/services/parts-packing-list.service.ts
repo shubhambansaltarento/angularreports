@@ -56,8 +56,8 @@ export class PartsPackingListService {
    * the spec's Open decisions) alongside the filter panel's Date Range, and is zero-padded
    * here before being sent — same convention as Dealer Ledger's `kunnr`/Warranty Cost's
    * `dealerCode`. `companyCode` is sent alongside it, sourced from config. Invoice/Delivery
-   * Number/Case/Material are applied client-side afterward (`applyClientFilters`), since
-   * the confirmed API contract does not accept them.
+   * Number are applied client-side afterward (`applyClientFilters`), since the confirmed
+   * API contract does not accept them.
    */
   getEntries(dealerCode: string, companyCode: string, filters: PartsPackingListFilters): Observable<PartsPackingListResponse> {
     const body = {
@@ -89,13 +89,11 @@ export class PartsPackingListService {
     return Object.keys(firstRow).map((key) => ({ key, header: toTitleCaseHeader(key), sortable: true }));
   }
 
-  /** Applies Invoice/Delivery Number/Case/Material as client-side filters — not sent to the real API (see class doc). */
+  /** Applies Invoice/Delivery Number as client-side filters — not sent to the real API (see class doc). */
   private applyClientFilters(rows: PartsPackingListRow[], filters: PartsPackingListFilters): PartsPackingListRow[] {
     return rows.filter((row) => {
       if (filters.invoiceNumber && !this.contains(row['invoice_number'], filters.invoiceNumber)) return false;
       if (filters.deliveryNumber && !this.contains(row['delivery_number'], filters.deliveryNumber)) return false;
-      if (!this.inRange(row['case_number'], filters.caseFrom, filters.caseTo)) return false;
-      if (!this.inRange(row['part_number'], filters.materialFrom, filters.materialTo)) return false;
       return true;
     });
   }
@@ -104,12 +102,5 @@ export class PartsPackingListService {
     return String(value ?? '')
       .toLowerCase()
       .includes(needle.toLowerCase());
-  }
-
-  private inRange(value: unknown, from?: string, to?: string): boolean {
-    const stringValue = String(value ?? '');
-    if (from && stringValue < from) return false;
-    if (to && stringValue > to) return false;
-    return true;
   }
 }

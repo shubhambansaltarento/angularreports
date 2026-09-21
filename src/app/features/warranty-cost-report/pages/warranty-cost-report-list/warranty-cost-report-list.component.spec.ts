@@ -57,12 +57,10 @@ describe('WarrantyCostReportListComponent', () => {
     return fixture;
   }
 
-  it('renders the centered header, breadcrumb, and filter, with no automatic search on load', () => {
+  it('renders the header bar and filter, with no automatic search on load', () => {
     const fixture = createComponent();
 
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Warranty Cost Report');
-    const breadcrumb: HTMLElement = fixture.nativeElement.querySelector('app-breadcrumb');
-    expect(breadcrumb.textContent).toContain('Warranty Cost Report');
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('Warranty Cost Report');
     expect(fixture.nativeElement.querySelector('app-warranty-cost-report-filter')).toBeTruthy();
     expect(searchSpy).not.toHaveBeenCalled();
   });
@@ -104,13 +102,14 @@ describe('WarrantyCostReportListComponent', () => {
     expect(fixture.nativeElement.querySelector('app-html-pdf-viewer')).toBeFalsy();
   });
 
-  it('renders a small, secondary "Show Report" button that delegates to the filter panel\'s submit()', () => {
+  it('renders a small "Show Report" button, themed with the report blue, that delegates to the filter panel\'s submit()', () => {
     const fixture = createComponent();
     const submitSpy = vi.spyOn(fixture.componentInstance['filter'](), 'submit');
 
     const button: HTMLButtonElement = fixture.nativeElement.querySelector('.warranty-cost-report-list__show-report-btn');
     expect(button.textContent?.trim()).toBe('Show Report');
-    expect(button.classList).toContain('btn-secondary');
+    expect(button.classList).toContain('btn-sm');
+    expect(button.classList).not.toContain('btn-secondary');
 
     button.click();
     expect(submitSpy).toHaveBeenCalledTimes(1);

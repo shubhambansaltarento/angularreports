@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
+import { ReportDealerIdentityComponent } from '../../../../shared/ui/report-dealer-identity/report-dealer-identity.component';
+import { ReportHeaderBarComponent } from '../../../../shared/ui/report-header-bar/report-header-bar.component';
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { PartsPackingListTableComponent } from '../../components/parts-packing-list-table/parts-packing-list-table.component';
 import { PartsPackingListFilterComponent } from '../../filters/parts-packing-list-filter/parts-packing-list-filter.component';
@@ -24,7 +25,7 @@ import { PartsPackingListStore } from '../../store/parts-packing-list.store';
  */
 @Component({
   selector: 'app-parts-packing-list-list',
-  imports: [BreadcrumbComponent, PartsPackingListFilterComponent, PartsPackingListTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
+  imports: [ReportHeaderBarComponent, ReportDealerIdentityComponent, PartsPackingListFilterComponent, PartsPackingListTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './parts-packing-list-list.component.html',
   styleUrl: './parts-packing-list-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,6 +38,9 @@ export class PartsPackingListListComponent {
   protected readonly filter = viewChild.required(PartsPackingListFilterComponent);
 
   protected readonly config = signal<PartsPackingListConfig | null>(null);
+
+  protected readonly dealerCode = computed(() => this.config()?.context.dealerCode ?? this.dealerContext().dealerCode);
+  protected readonly dealerName = computed(() => this.config()?.context.dealerDescription ?? this.dealerContext().dealerDescription);
 
   constructor() {
     this.partsPackingListService

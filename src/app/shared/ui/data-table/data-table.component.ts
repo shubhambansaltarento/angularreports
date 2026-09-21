@@ -88,6 +88,16 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   readonly initialPageSize = input<number>(DEFAULT_PAGE_SIZE_OPTIONS[0]);
 
+  /** Options shown in the "Show [N] entries" selector — legacy-sap-bo-style-report-redesign-21-09-2026-01_15_PM.md. */
+  readonly pageSizeOptions = input<readonly number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
+
+  /**
+   * A bold `Total` row rendered in the table's `<tfoot>`, keyed by column key — omitted
+   * (default `null`) for reports with nothing to aggregate. The consumer computes the
+   * values; this table only renders them under the matching visible column.
+   */
+  readonly totals = input<Record<string, string | number> | null>(null);
+
   readonly title = input<string>('');
 
   /** Restricts global search to specific fields; searches every column key if omitted. */
@@ -575,6 +585,12 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
       this.searchTerm.set(value);
       this.currentPage.set(1);
     }, SEARCH_DEBOUNCE_MS);
+  }
+
+  protected onPageSizeChange(event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+    this.pageSize.set(value);
+    this.currentPage.set(1);
   }
 
   protected clearSearch(): void {

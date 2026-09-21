@@ -1,9 +1,6 @@
 <div class="warranty-reconciliation-list">
-  <header class="warranty-reconciliation-list__header">
-    <h1>{{ title }}</h1>
-  </header>
-
-  <app-breadcrumb [currentLabel]="title" />
+  <app-report-header-bar [title]="title" />
+  <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
   <app-warranty-reconciliation-filter [config]="config()" (searched)="onSearch($event)" />
 

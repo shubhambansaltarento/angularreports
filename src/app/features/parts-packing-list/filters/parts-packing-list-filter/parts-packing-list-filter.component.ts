@@ -6,7 +6,7 @@ import { PartsPackingListFilters } from '../../models/parts-packing-list-filters
 
 /**
  * Filter panel for Parts Packing List, matching the reference SAP UI: Input Parameters
- * (Invoice Number/Delivery Number) plus a Filter Menu (Date Range/Case/Material), each
+ * (Invoice Number/Delivery Number) plus a Filter Menu (Date Range), each
  * field a "typed dropdown" (`TypeaheadInputComponent`) — parts-packing-list-real-api-and-dynamic-columns-17-09-2026-06_38_PM.md.
  * This report's field set does not overlap with the shared `ReportSearchBarComponent`
  * (no Dealer Code/Description/Company Code here), so it does not reuse it.
@@ -31,10 +31,6 @@ export class PartsPackingListFilterComponent {
     deliveryNumber: this.formBuilder.control<string | null>(null),
     dateFrom: this.formBuilder.control<string | null>(defaultDateRange().dateFrom),
     dateTo: this.formBuilder.control<string | null>(defaultDateRange().dateTo),
-    caseFrom: this.formBuilder.control<string | null>(null),
-    caseTo: this.formBuilder.control<string | null>(null),
-    materialFrom: this.formBuilder.control<string | null>(null),
-    materialTo: this.formBuilder.control<string | null>(null),
   });
 
   readonly searched = output<PartsPackingListFilters>();
@@ -48,10 +44,6 @@ export class PartsPackingListFilterComponent {
       deliveryNumber: value.deliveryNumber ?? undefined,
       dateFrom: value.dateFrom ?? undefined,
       dateTo: value.dateTo ?? undefined,
-      caseFrom: value.caseFrom ?? undefined,
-      caseTo: value.caseTo ?? undefined,
-      materialFrom: value.materialFrom ?? undefined,
-      materialTo: value.materialTo ?? undefined,
     });
   }
 

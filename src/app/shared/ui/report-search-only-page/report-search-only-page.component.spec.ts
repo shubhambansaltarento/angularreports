@@ -28,18 +28,8 @@ describe('ReportSearchOnlyPageComponent', () => {
     fixture.componentRef.setInput('description', 'Report description');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('My Report');
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('My Report');
     expect(fixture.nativeElement.textContent).toContain('Report description');
-  });
-
-  it('renders a breadcrumb below the header, trailing with the report title (breadcrumbs-and-dealer-ledger-style-headers-17-09-2026-07_17_AM.md)', () => {
-    const fixture = createComponent();
-    fixture.componentRef.setInput('title', 'My Report');
-    fixture.detectChanges();
-
-    const breadcrumb: HTMLElement = fixture.nativeElement.querySelector('app-breadcrumb');
-    expect(breadcrumb).toBeTruthy();
-    expect(breadcrumb.textContent).toContain('My Report');
   });
 
   it('omits the description paragraph when description is empty', () => {
@@ -47,7 +37,7 @@ describe('ReportSearchOnlyPageComponent', () => {
     fixture.componentRef.setInput('title', 'My Report');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.report-search-only-page__header p')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('.report-search-only-page__description')).toBeFalsy();
   });
 
   it('prefills the search bar from the dealer context', () => {

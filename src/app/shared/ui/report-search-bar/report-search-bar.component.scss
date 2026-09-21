@@ -23,38 +23,6 @@
   color: #495057;
 }
 
-// Single row, three columns, one shared border — header-center-align-single-row-identity-fields-17-09-2026-06_05_AM.md.
-// Replaced the three individually-bordered cards this mode previously rendered
-// (identity-fields-as-cards-16-09-2026-02_14_PM.md).
-.report-search-bar__identity-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-}
-
-.report-search-bar__identity-col {
-  flex: 1 1 0;
-  min-width: 8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.report-search-bar__card-label {
-  font-size: 0.6875rem;
-  color: #666;
-  margin: 0;
-}
-
-.report-search-bar__card-value {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
 // Single line: label, then From/picker/To/picker inline — date-range-single-line-17-09-2026-06_10_AM.md.
 // `flex-wrap: nowrap` (rather than the default `wrap` every other field row uses) keeps
 // "From [picker] To [picker]" on one line instead of stacking the two pickers.

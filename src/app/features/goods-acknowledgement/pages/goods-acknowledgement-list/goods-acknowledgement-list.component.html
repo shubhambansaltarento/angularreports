@@ -1,9 +1,6 @@
 <div class="goods-acknowledgement-list">
-  <header class="goods-acknowledgement-list__header">
-    <h1>{{ title }}</h1>
-  </header>
-
-  <app-breadcrumb [currentLabel]="title" />
+  <app-report-header-bar [title]="title" />
+  <app-report-dealer-identity [dealerCode]="dealerContext().dealerCode" [dealerName]="dealerContext().dealerDescription" />
 
   <app-report-search-bar [initialValue]="initialValue()" />
 

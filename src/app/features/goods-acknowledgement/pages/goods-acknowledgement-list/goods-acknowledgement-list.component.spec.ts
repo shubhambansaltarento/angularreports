@@ -27,11 +27,11 @@ describe('GoodsAcknowledgementListComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders a breadcrumb below the header, trailing with "Goods Acknowledgement" (breadcrumbs-and-dealer-ledger-style-headers-17-09-2026-07_17_AM.md)', () => {
+  it('renders the report header bar with "Goods Acknowledgement"', () => {
     const fixture = createComponent();
-    const breadcrumb: HTMLElement = fixture.nativeElement.querySelector('app-breadcrumb');
-    expect(breadcrumb).toBeTruthy();
-    expect(breadcrumb.textContent).toContain('Goods Acknowledgement');
+    const headerBar: HTMLElement = fixture.nativeElement.querySelector('app-report-header-bar');
+    expect(headerBar).toBeTruthy();
+    expect(headerBar.textContent).toContain('Goods Acknowledgement');
   });
 
   it('prefills the search bar from the dealer context', () => {
