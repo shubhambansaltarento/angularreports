@@ -22,42 +22,37 @@ describe('ReportsHomeComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the "TVS ... Dealer Reports" branded header', () => {
+  it('renders a simple "TVS Dealer Reports" heading', () => {
     const fixture = createComponent();
     const header: HTMLElement = fixture.nativeElement.querySelector('.reports-home__header');
-    expect(header.textContent).toContain('TVS');
-    expect(header.textContent).toContain('Dealer Reports');
+    expect(header.textContent?.trim()).toBe('TVS Dealer Reports');
   });
 
-  it('renders one flat card per report in REPORTS_CATALOG, in order, with no status-grouped sections', () => {
+  it('renders one flat row per report in REPORTS_CATALOG, in order, top to bottom', () => {
     const fixture = createComponent();
-    expect(fixture.nativeElement.querySelectorAll('.reports-home__section').length).toBe(0);
-
-    const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.reports-home__card');
-    expect(cards.length).toBe(REPORTS_CATALOG.length);
+    const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.reports-home__row');
+    expect(rows.length).toBe(REPORTS_CATALOG.length);
 
     REPORTS_CATALOG.forEach((report, index) => {
-      expect(cards[index].textContent).toContain(report.title);
-      expect(cards[index].textContent).toContain(report.description);
+      expect(rows[index].textContent).toContain(report.title);
+      expect(rows[index].textContent).toContain(report.description);
     });
   });
 
-  it('links each card to its report route', () => {
+  it('links each row to its report route', () => {
     const fixture = createComponent();
     const links: NodeListOf<HTMLAnchorElement> = fixture.nativeElement.querySelectorAll(
-      '.reports-home__card-link',
+      '.reports-home__row-link',
     );
     expect(links[0].getAttribute('href')).toBe(`/${REPORTS_CATALOG[0].route}`);
   });
 
-  it('renders a distinct icon for every card, regardless of apiIntegrated/hasTable', () => {
+  it('renders no icon for any report row', () => {
     const fixture = createComponent();
-    const icons: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.reports-home__icon i');
-    expect(icons.length).toBe(REPORTS_CATALOG.length);
-    icons.forEach((icon) => expect(icon.className).toContain('bi-'));
+    expect(fixture.nativeElement.querySelector('.bi')).toBeFalsy();
   });
 
-  it('renders no "Search parameters only" badge — every card looks the same regardless of status', () => {
+  it('renders no "Search parameters only" badge — every row looks the same regardless of status', () => {
     const fixture = createComponent();
     expect(fixture.nativeElement.textContent).not.toContain('Search parameters only');
   });

@@ -68,6 +68,14 @@ export class WarrantyCostStore {
     this._error.set(null);
   }
 
+  /** Clears back to the pre-search state — called by the page's Reset button, alongside the filter panel clearing itself. */
+  reset(): void {
+    this.lastFilters = null;
+    this._hasSearched.set(false);
+    this._error.set(null);
+    this._statement.set(null);
+  }
+
   private applyStatement(statement: WarrantyCostStatement | null): void {
     this._loading.set(false);
     if (!statement) return;

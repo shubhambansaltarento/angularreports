@@ -9,6 +9,11 @@
   padding: 1rem;
 }
 
+.warranty-cost-report-list__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .warranty-cost-report-list__show-report-btn {
   align-self: flex-start;
   background-color: rgb(47, 92, 138);
