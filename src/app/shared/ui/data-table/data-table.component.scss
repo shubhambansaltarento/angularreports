@@ -226,13 +226,15 @@
   font-size: 0.8125rem;
 }
 
-// Striped body rows — odd rows white, even rows light grey.
+// Striped body rows — odd rows white, even rows light grey. A darker grey than the earlier
+// #f5f7fa — that was too close to white to read as a visible stripe once borders/long
+// multi-line cell content (e.g. Dealer Ledger's address column) were in the mix.
 .data-table__table tr[cdk-row]:nth-child(even) {
-  background: #f5f7fa;
+  background: #e9ecef;
 }
 
 .data-table__table tr[cdk-row]:hover {
-  background: #eef2f7;
+  background: #dde3e8;
 }
 
 .data-table__table tfoot tr {

@@ -178,6 +178,17 @@ describe('DataTableComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('25 records');
   });
 
+  it('renders alternating row backgrounds — even rows visibly grey against odd/white rows (alternate-row-colors-distinct-contrast-21-09-2026-07_30_PM.md)', () => {
+    const { fixture } = createHost();
+    const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('tr[cdk-row]');
+
+    const oddRowBackground = getComputedStyle(rows[0]).backgroundColor;
+    const evenRowBackground = getComputedStyle(rows[1]).backgroundColor;
+    expect(evenRowBackground).not.toBe(oddRowBackground);
+    expect(evenRowBackground).not.toBe('rgba(0, 0, 0, 0)');
+    expect(evenRowBackground).not.toBe('transparent');
+  });
+
   it('paginates to the next page', () => {
     const { fixture } = createHost();
     const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll(
