@@ -1,0 +1,5 @@
+// Legacy SAP-BO-style report header/table blue — legacy-sap-bo-style-report-redesign-21-09-2026-01_15_PM.md.
+// Named here once so the report header bar and the shared data table's header row use the
+// exact same color, instead of each defining its own literal.
+$report-header-blue: rgba(47, 92, 138, 0.7411764706);
+$report-header-blue-text: #fff;

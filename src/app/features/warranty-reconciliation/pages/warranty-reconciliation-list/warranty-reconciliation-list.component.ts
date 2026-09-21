@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
+import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
+import { ReportDealerIdentityComponent } from '../../../../shared/ui/report-dealer-identity/report-dealer-identity.component';
+import { ReportHeaderBarComponent } from '../../../../shared/ui/report-header-bar/report-header-bar.component';
 import { CommonReportSearchFilters } from '../../../../shared/models/report-search-filters.model';
 import { ExportFormat } from '../../../../shared/services/export/models/export-format.model';
 import { WarrantyReconciliationTableComponent } from '../../components/warranty-reconciliation-table/warranty-reconciliation-table.component';
@@ -28,7 +30,7 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
  */
 @Component({
   selector: 'app-warranty-reconciliation-list',
-  imports: [BreadcrumbComponent, WarrantyReconciliationFilterComponent, WarrantyReconciliationTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
+  imports: [ReportHeaderBarComponent, ReportDealerIdentityComponent, WarrantyReconciliationFilterComponent, WarrantyReconciliationTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './warranty-reconciliation-list.component.html',
   styleUrl: './warranty-reconciliation-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,8 +39,12 @@ export class WarrantyReconciliationListComponent {
   protected readonly title = 'Warranty Reconciliation';
   protected readonly store = inject(WarrantyReconciliationStore);
   private readonly warrantyReconciliationService = inject(WarrantyReconciliationService);
+  private readonly dealerContext = inject(DealerContextService).dealerContext;
 
   protected readonly config = signal<WarrantyReconciliationConfig | null>(null);
+
+  protected readonly dealerCode = computed(() => this.config()?.context.dealerCode ?? this.dealerContext().dealerCode);
+  protected readonly dealerName = computed(() => this.config()?.context.dealerDescription ?? this.dealerContext().dealerDescription);
 
   /** Export formats from the config API, mapped onto `ExportFormat` — `null` until config loads (table shows every format meanwhile). */
   protected readonly exportFormats = computed<ExportFormat[] | null>(() => {

@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { CommonReportSearchFilters } from '../../../../shared/models/report-search-filters.model';
-import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import { DataTableComponent } from '../../../../shared/ui/data-table/data-table.component';
 import { TableColumn } from '../../../../shared/ui/data-table/models/table-column.model';
+import { ReportDealerIdentityComponent } from '../../../../shared/ui/report-dealer-identity/report-dealer-identity.component';
+import { ReportHeaderBarComponent } from '../../../../shared/ui/report-header-bar/report-header-bar.component';
 import { ReportSearchBarComponent } from '../../../../shared/ui/report-search-bar/report-search-bar.component';
 import { GoodsAcknowledgementFilters } from '../../models/goods-acknowledgement-filters.model';
 import { GoodsAcknowledgementRow } from '../../models/goods-acknowledgement-row.model';
@@ -24,7 +25,7 @@ const GOODS_ACKNOWLEDGEMENT_TABLE_COLUMNS: TableColumn<GoodsAcknowledgementRow>[
  */
 @Component({
   selector: 'app-goods-acknowledgement-list',
-  imports: [ReportSearchBarComponent, DataTableComponent, BreadcrumbComponent],
+  imports: [ReportSearchBarComponent, DataTableComponent, ReportHeaderBarComponent, ReportDealerIdentityComponent],
   templateUrl: './goods-acknowledgement-list.component.html',
   styleUrl: './goods-acknowledgement-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,7 +36,7 @@ export class GoodsAcknowledgementListComponent {
   /** Always empty — no data source is wired up yet for this report (see class doc). */
   protected readonly rows: GoodsAcknowledgementRow[] = [];
 
-  private readonly dealerContext = inject(DealerContextService).dealerContext;
+  protected readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly searchBar = viewChild.required(ReportSearchBarComponent);
 
   protected readonly vehicleSelected = signal(false);

@@ -1,14 +1,13 @@
 <div class="parts-packing-list-list">
-  <app-breadcrumb [currentLabel]="title" />
+  <app-report-header-bar [title]="title" />
+  <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
   <div class="parts-packing-list-list__card">
-    <h1 class="parts-packing-list-list__title">{{ title }}</h1>
-
     <app-parts-packing-list-filter (searched)="onSearch($event)" />
 
     <button
       type="button"
-      class="parts-packing-list-list__show-report-btn btn btn-sm btn-secondary"
+      class="parts-packing-list-list__show-report-btn btn btn-sm"
       [disabled]="filter().isSubmitDisabled()"
       (click)="onProcess()"
     >

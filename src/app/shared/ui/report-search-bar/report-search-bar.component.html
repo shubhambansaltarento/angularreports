@@ -2,32 +2,7 @@
   @if (identitySectionLabel()) {
     <h2 class="report-search-bar__section-label col-12">{{ identitySectionLabel() }}</h2>
   }
-  @if (readonlyDealerFields()) {
-    <!-- Single row, three columns, two rows (label above value) per column — header-center-align-single-row-identity-fields-17-09-2026-06_05_AM.md.
-         Replaces the three separately-bordered cards this mode previously rendered. -->
-    <div class="report-search-bar__identity-group col-12">
-      <div class="report-search-bar__identity-col">
-        <label class="report-search-bar__card-label" for="report-search-bar-dealer-code">Dealer Code</label>
-        <p id="report-search-bar-dealer-code" class="report-search-bar__card-value">
-          {{ form.controls.dealerCode.value }}
-        </p>
-      </div>
-      <div class="report-search-bar__identity-col">
-        <label class="report-search-bar__card-label" for="report-search-bar-dealer-description">Dealer Description</label>
-        <p id="report-search-bar-dealer-description" class="report-search-bar__card-value">
-          {{ form.controls.dealerDescription.value }}
-        </p>
-      </div>
-      @if (showCompanyCode()) {
-        <div class="report-search-bar__identity-col">
-          <label class="report-search-bar__card-label" for="report-search-bar-company-code">Company Code</label>
-          <p id="report-search-bar-company-code" class="report-search-bar__card-value">
-            {{ form.controls.companyCode.value }}
-          </p>
-        </div>
-      }
-    </div>
-  } @else {
+  @if (!readonlyDealerFields()) {
     <div
       class="report-search-bar__field col-12"
       [class.col-sm-6]="!stacked()"

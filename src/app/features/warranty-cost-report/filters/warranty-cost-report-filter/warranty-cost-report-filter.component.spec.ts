@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { WarrantyCostReportFilterComponent } from './warranty-cost-report-filter.component';
-import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 
 describe('WarrantyCostReportFilterComponent', () => {
   beforeEach(async () => {
@@ -27,27 +26,11 @@ describe('WarrantyCostReportFilterComponent', () => {
     expect(fixture.nativeElement.querySelector('button')).toBeFalsy();
   });
 
-  it('shows Dealer Code/Description read-only, from the dealer context, before config loads', () => {
+  it('renders no Dealer Code/Description fields of its own — that identity is shown by ReportDealerIdentityComponent above the page (dealer-identity-line-below-header-bar-21-09-2026-05_00_PM.md)', () => {
     const fixture = createComponent();
-    const dealerContext = TestBed.inject(DealerContextService).dealerContext();
 
-    expect(fixture.nativeElement.textContent).toContain(dealerContext.dealerCode);
-    expect(fixture.nativeElement.textContent).toContain(dealerContext.dealerDescription);
-  });
-
-  it('prefers the real config context/Company Code default over the dealer context, once loaded', () => {
-    const fixture = createComponent();
-    fixture.componentRef.setInput('config', {
-      reportCode: 'WARRANTY_COST',
-      title: 'Warranty Cost',
-      configVersion: '2026.09.1',
-      context: { dealerCode: '10015', dealerDescription: 'PAWAN SARKAR AUTOMOBILES' },
-      parameters: [{ name: 'companyCode', label: 'Company Code', defaultValue: 'TSL' }],
-    });
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('10015');
-    expect(fixture.nativeElement.textContent).toContain('PAWAN SARKAR AUTOMOBILES');
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-description')).toBeFalsy();
   });
 
   it('emits searched with the config companyCode on submit()', () => {

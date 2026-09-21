@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { DealerLedgerFilterComponent } from './dealer-ledger-filter.component';
-import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { DealerLedgerFilterValue } from '../../models/dealer-ledger-filter-panel.model';
 
 describe('DealerLedgerFilterComponent', () => {
@@ -21,12 +20,10 @@ describe('DealerLedgerFilterComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('prefills the common search fields from the dealer context', () => {
+  it('renders no Dealer Code/Description fields of its own — that identity is shown by ReportDealerIdentityComponent above the page (dealer-identity-line-below-header-bar-21-09-2026-05_00_PM.md)', () => {
     const fixture = createComponent();
-    const dealerContext = TestBed.inject(DealerContextService).dealerContext();
 
-    const dealerCodeText: HTMLElement = fixture.nativeElement.querySelector('#report-search-bar-dealer-code');
-    expect(dealerCodeText.textContent?.trim()).toBe(dealerContext.dealerCode);
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code')).toBeFalsy();
   });
 
   it('renders all five "include details" checkboxes and toggles selection count', () => {

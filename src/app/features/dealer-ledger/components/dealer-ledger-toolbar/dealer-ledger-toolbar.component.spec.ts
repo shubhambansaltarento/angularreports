@@ -14,15 +14,12 @@ describe('DealerLedgerToolbarComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the default title, centered, with no entry count (header-center-align-single-row-identity-fields-17-09-2026-06_05_AM.md)', () => {
+  it('renders the default title in the header bar, with no entry count', () => {
     const fixture = TestBed.createComponent(DealerLedgerToolbarComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Dealer Ledger');
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('Dealer Ledger');
     expect(fixture.nativeElement.textContent).not.toContain('entries');
-
-    const header: HTMLElement = fixture.nativeElement.querySelector('.dealer-ledger-toolbar');
-    expect(getComputedStyle(header).justifyContent).toBe('center');
   });
 
   it('renders a custom title when provided', () => {
@@ -30,6 +27,6 @@ describe('DealerLedgerToolbarComponent', () => {
     fixture.componentRef.setInput('title', 'Custom Title');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Custom Title');
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('Custom Title');
   });
 });

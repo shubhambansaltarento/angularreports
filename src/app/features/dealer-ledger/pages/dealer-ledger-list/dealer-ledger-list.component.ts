@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BreadcrumbComponent } from '../../../../shared/ui/breadcrumb/breadcrumb.component';
+import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
 import { LoadingIndicatorComponent } from '../../../../shared/ui/loading-indicator/loading-indicator.component';
 import { DealerLedgerTableComponent } from '../../components/dealer-ledger-table/dealer-ledger-table.component';
@@ -49,7 +49,7 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
  */
 @Component({
   selector: 'app-dealer-ledger-list',
-  imports: [DealerLedgerToolbarComponent, BreadcrumbComponent, DealerLedgerFilterComponent, DealerLedgerTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
+  imports: [DealerLedgerToolbarComponent, DealerLedgerFilterComponent, DealerLedgerTableComponent, DismissibleAlertComponent, LoadingIndicatorComponent],
   templateUrl: './dealer-ledger-list.component.html',
   styleUrl: './dealer-ledger-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,10 +57,14 @@ const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
 export class DealerLedgerListComponent {
   protected readonly store = inject(DealerLedgerStore);
   private readonly dealerLedgerService = inject(DealerLedgerService);
+  private readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly filter = viewChild.required(DealerLedgerFilterComponent);
   private readonly table = viewChild.required(DealerLedgerTableComponent);
 
   protected readonly config = signal<DealerLedgerConfig | null>(null);
+
+  protected readonly dealerCode = computed(() => this.config()?.context.dealerCode ?? this.dealerContext().dealerCode);
+  protected readonly dealerName = computed(() => this.config()?.context.dealerDescription ?? this.dealerContext().dealerDescription);
 
   /** Export formats from the config API, mapped onto `ExportFormat` — `null` until config loads (table shows every format meanwhile). */
   protected readonly exportFormats = computed<ExportFormat[] | null>(() => {

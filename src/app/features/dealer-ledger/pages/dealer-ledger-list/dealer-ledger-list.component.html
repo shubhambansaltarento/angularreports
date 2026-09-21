@@ -1,7 +1,9 @@
 <div class="dealer-ledger-list">
-  <app-dealer-ledger-toolbar class="dealer-ledger-list__header" />
-
-  <app-breadcrumb currentLabel="Dealer Ledger" />
+  <app-dealer-ledger-toolbar
+    class="dealer-ledger-list__header"
+    [dealerCode]="dealerCode()"
+    [dealerName]="dealerName()"
+  />
 
   <app-dealer-ledger-filter
     class="dealer-ledger-list__filters"

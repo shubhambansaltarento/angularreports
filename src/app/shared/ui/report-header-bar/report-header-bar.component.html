@@ -1,0 +1,20 @@
+<div class="report-header-bar">
+  <span class="report-header-bar__title">{{ title() }}</span>
+
+  @if (actions().length) {
+    <div class="report-header-bar__actions">
+      @for (action of actions(); track action) {
+        <button
+          type="button"
+          class="report-header-bar__action"
+          [attr.aria-label]="actionLabel(action)"
+          [title]="actionLabel(action)"
+          (click)="actionClicked.emit(action)"
+        >
+          <i class="bi {{ actionIcon(action) }}" aria-hidden="true"></i>
+          <span class="report-header-bar__action-label">{{ actionLabel(action) }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

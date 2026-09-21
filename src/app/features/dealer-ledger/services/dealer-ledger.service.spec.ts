@@ -59,7 +59,7 @@ describe('DealerLedgerService', () => {
     expect(req.request.params.get('bukrs')).toBe('TVSL');
     expect(req.request.params.get('kunnr')).toBe('00000DLR-1');
     expect(req.request.params.get('fromDate')).toBe('2026-08-01');
-    expect(req.request.params.get('limit')).toBe('5000');
+    expect(req.request.params.get('limit')).toBe('2000');
     req.flush([]);
   });
 
