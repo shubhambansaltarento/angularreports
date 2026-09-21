@@ -65,4 +65,9 @@ export class WarrantyCostReportFilterComponent {
   isSubmitDisabled(): boolean {
     return this.searchBar().isDateRangeInvalid();
   }
+
+  /** Clears the Date Range back to empty — called by the page's Reset button. */
+  resetFilters(): void {
+    this.searchBar().reset();
+  }
 }

@@ -4,14 +4,17 @@
 
   <app-warranty-cost-report-filter [config]="config()" (searched)="onSearch($event)" />
 
-  <button
-    type="button"
-    class="warranty-cost-report-list__show-report-btn btn btn-sm"
-    [disabled]="filter().isSubmitDisabled()"
-    (click)="onShowReport()"
-  >
-    Show Report
-  </button>
+  <div class="warranty-cost-report-list__actions">
+    <button
+      type="button"
+      class="warranty-cost-report-list__show-report-btn btn btn-sm"
+      [disabled]="filter().isSubmitDisabled()"
+      (click)="onShowReport()"
+    >
+      Show Report
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onReset()">Reset</button>
+  </div>
 
   @if (store.error(); as error) {
     <div class="warranty-cost-report-list__error">

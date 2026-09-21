@@ -63,6 +63,13 @@ export class WarrantyCostReportListComponent {
     this.store.refresh();
   }
 
+  /** Clears the filter panel back to defaults and returns to the pre-search state. */
+  protected onReset(): void {
+    this.lastFilters = null;
+    this.filter().resetFilters();
+    this.store.reset();
+  }
+
   protected get dateFrom(): string | null {
     return this.lastFilters?.dateFrom ?? null;
   }

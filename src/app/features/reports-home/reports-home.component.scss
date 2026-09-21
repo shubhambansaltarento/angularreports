@@ -6,59 +6,47 @@
 .reports-home {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 2rem;
 }
 
 .reports-home__header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.reports-home__brand-tvs {
-  font-size: 2.25rem;
-  font-weight: 800;
-  font-style: italic;
-  color: #1e293b;
-}
-
-.reports-home__brand-horse {
-  font-size: 2rem;
+  text-align: left;
 }
 
 .reports-home__brand-title {
-  font-size: 2.25rem;
-  font-weight: 800;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #1e293b;
 }
 
-.reports-home__card-link {
-  border: none;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.15s ease;
-
-  &:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  }
-
-  .card-title,
-  .card-text {
-    color: #1e293b;
-  }
+.reports-home__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }
 
-.reports-home__icon {
-  flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+.reports-home__row {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.reports-home__row-link {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 1.375rem;
+  flex-direction: column;
+  padding: 0.75rem 0;
+  color: #1e293b;
+}
+
+.reports-home__row-link:hover {
+  color: rgb(47, 92, 138);
+}
+
+.reports-home__row-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.reports-home__row-description {
+  font-size: 0.8125rem;
 }
