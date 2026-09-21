@@ -36,6 +36,7 @@ export class PartsPackingListListComponent {
   private readonly partsPackingListService = inject(PartsPackingListService);
   private readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly filter = viewChild.required(PartsPackingListFilterComponent);
+  private readonly table = viewChild.required(PartsPackingListTableComponent);
 
   protected readonly config = signal<PartsPackingListConfig | null>(null);
 
@@ -65,5 +66,15 @@ export class PartsPackingListListComponent {
 
   protected onRetry(): void {
     this.store.refresh();
+  }
+
+  /** Triggered by the table header's Reset control — clears the filter panel, which in turn emits `reset`. */
+  protected onTableReset(): void {
+    this.table().resetPagination();
+    this.filter().resetFilters();
+  }
+
+  protected onReset(): void {
+    this.store.reset();
   }
 }

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, viewChild } from '@angular/core';
 import { DataTableCellTemplateDirective } from '../../../../shared/ui/data-table/data-table-cell-template.directive';
 import { DataTableComponent } from '../../../../shared/ui/data-table/data-table.component';
 import { ExportFormat } from '../../../../shared/services/export/models/export-format.model';
@@ -47,4 +47,14 @@ export class WarrantyReconciliationTableComponent {
   });
 
   protected readonly initialPageSize = WARRANTY_RECONCILIATION_DEFAULT_PAGE_SIZE;
+
+  /** Fires when the table header's Reset control is clicked — the list page clears filters in response. */
+  readonly reset = output<void>();
+
+  private readonly dataTable = viewChild.required(DataTableComponent);
+
+  /** Restarts the underlying table's pagination at page 1 — called by the list page after Reset. */
+  resetPagination(): void {
+    this.dataTable().resetPagination();
+  }
 }

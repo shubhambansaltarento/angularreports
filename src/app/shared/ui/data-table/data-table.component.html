@@ -50,18 +50,6 @@
         }
       </div>
 
-      @if (showReset()) {
-        <button
-          type="button"
-          class="btn btn-sm btn-outline-secondary data-table__pill-button"
-          [disabled]="resetDisabled()"
-          title="Clear all filters and reload the full result set"
-          (click)="resetClicked.emit()"
-        >
-          Reset
-        </button>
-      }
-
       <div class="data-table__export-menu">
         <button
           type="button"
@@ -122,6 +110,18 @@
           </div>
         }
       </div>
+
+      @if (showReset()) {
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary data-table__pill-button"
+          [disabled]="resetDisabled()"
+          title="Clear all filters and reload the full result set"
+          (click)="resetClicked.emit()"
+        >
+          Reset
+        </button>
+      }
     </div>
   </div>
 

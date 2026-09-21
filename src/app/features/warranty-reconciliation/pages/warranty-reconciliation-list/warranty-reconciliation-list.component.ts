@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DealerContextService } from '../../../../shared/services/dealer-context/dealer-context.service';
 import { DismissibleAlertComponent } from '../../../../shared/ui/dismissible-alert/dismissible-alert.component';
@@ -46,6 +46,9 @@ export class WarrantyReconciliationListComponent {
   protected readonly dealerCode = computed(() => this.config()?.context.dealerCode ?? this.dealerContext().dealerCode);
   protected readonly dealerName = computed(() => this.config()?.context.dealerDescription ?? this.dealerContext().dealerDescription);
 
+  protected readonly filter = viewChild.required(WarrantyReconciliationFilterComponent);
+  private readonly table = viewChild.required(WarrantyReconciliationTableComponent);
+
   /** Export formats from the config API, mapped onto `ExportFormat` — `null` until config loads (table shows every format meanwhile). */
   protected readonly exportFormats = computed<ExportFormat[] | null>(() => {
     const formats = this.config()?.export.formats;
@@ -64,6 +67,16 @@ export class WarrantyReconciliationListComponent {
 
   protected onSearch(value: CommonReportSearchFilters): void {
     this.store.search(this.toFilters(value));
+  }
+
+  /** Triggered by the table header's Reset control — clears the filter panel, which in turn emits `reset`. */
+  protected onTableReset(): void {
+    this.table().resetPagination();
+    this.filter().resetFilters();
+  }
+
+  protected onReset(): void {
+    this.store.reset();
   }
 
   /**

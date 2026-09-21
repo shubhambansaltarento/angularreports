@@ -9,6 +9,8 @@
   [initialPageSize]="initialPageSize"
   [exportFormats]="exportFormats()"
   [exportFilename]="exportFilename()"
+  [showReset]="true"
+  (resetClicked)="reset.emit()"
 >
   <ng-template dataTableCell="reconciliationDate" let-row>
     <span [title]="$any(row).reconciliationDate">{{ $any(row).reconciliationDate | date }}</span>

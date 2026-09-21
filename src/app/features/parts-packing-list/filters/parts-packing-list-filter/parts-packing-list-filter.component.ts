@@ -34,6 +34,7 @@ export class PartsPackingListFilterComponent {
   });
 
   readonly searched = output<PartsPackingListFilters>();
+  readonly reset = output<void>();
 
   /** Submits the current filter values — the page's Process/"Show Report" button calls this. */
   submit(): void {
@@ -49,6 +50,12 @@ export class PartsPackingListFilterComponent {
 
   isSubmitDisabled(): boolean {
     return this.isDateRangeInvalid();
+  }
+
+  /** Clears filters back to defaults (empty Invoice/Delivery Number, the default Date Range) — called by the table header's Reset control. */
+  resetFilters(): void {
+    this.form.reset({ invoiceNumber: null, deliveryNumber: null, ...defaultDateRange() });
+    this.reset.emit();
   }
 
   /** The Date Range is required (per the real config's `fromDate`/`toDate` both `required: true`) and must not be inverted. */

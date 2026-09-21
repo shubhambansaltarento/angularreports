@@ -110,6 +110,16 @@ export class WarrantyReconciliationStore {
     this._error.set(null);
   }
 
+  /** Clears back to the pre-search state — called by the table header's Reset control, alongside the filter panel clearing itself. */
+  reset(): void {
+    this._filters.set({});
+    this._hasSearched.set(false);
+    this._error.set(null);
+    this._rows.set([]);
+    this._pagination.set(INITIAL_PAGINATION);
+    this._effectiveColumns.set(null);
+  }
+
   // ---- Internal -------------------------------------------------------------------------
 
   private fetch(): void {

@@ -80,6 +80,15 @@ export class PartsPackingListStore {
     this._error.set(null);
   }
 
+  /** Clears back to the pre-search state — called by the table header's Reset control, alongside the filter panel clearing itself. */
+  reset(): void {
+    this.lastRequest = null;
+    this._hasSearched.set(false);
+    this._error.set(null);
+    this._rows.set([]);
+    this._columns.set([]);
+  }
+
   private applyResponse(response: PartsPackingListResponse | null): void {
     this._loading.set(false);
     if (!response) return;
