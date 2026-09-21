@@ -30,5 +30,7 @@
     emptyStateMessage="No data source is wired up for Goods Acknowledgement yet — columns are shown pending confirmed source data."
     [columns]="columns"
     [data]="rows"
+    [showReset]="true"
+    (resetClicked)="onClear()"
   />
 </div>

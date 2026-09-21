@@ -3,7 +3,7 @@
   <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
   <div class="parts-packing-list-list__card">
-    <app-parts-packing-list-filter (searched)="onSearch($event)" />
+    <app-parts-packing-list-filter (searched)="onSearch($event)" (reset)="onReset()" />
 
     <button
       type="button"
@@ -30,6 +30,7 @@
       [rows]="store.data()"
       [columns]="store.columns()"
       [loading]="store.loading()"
+      (reset)="onTableReset()"
     />
   }
 </div>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, viewChild } from '@angular/core';
 import { DataTableComponent } from '../../../../shared/ui/data-table/data-table.component';
 import { TableColumn } from '../../../../shared/ui/data-table/models/table-column.model';
 import { PartsPackingListRow } from '../../models/parts-packing-list-row.model';
@@ -21,4 +21,14 @@ export class PartsPackingListTableComponent {
   readonly rows = input<PartsPackingListRow[]>([]);
   readonly columns = input<TableColumn<PartsPackingListRow>[]>([]);
   readonly loading = input(false);
+
+  /** Fires when the table header's Reset control is clicked — the list page clears filters in response. */
+  readonly reset = output<void>();
+
+  private readonly dataTable = viewChild.required(DataTableComponent);
+
+  /** Restarts the underlying table's pagination at page 1 — called by the list page after Reset. */
+  resetPagination(): void {
+    this.dataTable().resetPagination();
+  }
 }

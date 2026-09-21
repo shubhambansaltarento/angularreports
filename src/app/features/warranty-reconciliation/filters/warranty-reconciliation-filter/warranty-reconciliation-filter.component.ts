@@ -67,10 +67,17 @@ export class WarrantyReconciliationFilterComponent {
   });
 
   readonly searched = output<CommonReportSearchFilters>();
+  readonly reset = output<void>();
 
   /** Submits the current field values — blocked while the Reconciliation Date range is missing/invalid. */
   protected onSubmit(): void {
     if (this.searchBar().isDateRangeInvalid()) return;
     this.searched.emit(this.searchBar().value());
+  }
+
+  /** Clears the Reconciliation Date range back to empty — called by the table header's Reset control. */
+  resetFilters(): void {
+    this.searchBar().reset();
+    this.reset.emit();
   }
 }

@@ -2,7 +2,7 @@
   <app-report-header-bar [title]="title" />
   <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
-  <app-warranty-reconciliation-filter [config]="config()" (searched)="onSearch($event)" />
+  <app-warranty-reconciliation-filter [config]="config()" (searched)="onSearch($event)" (reset)="onReset()" />
 
   @if (store.error(); as error) {
     <div class="warranty-reconciliation-list__error">
@@ -21,6 +21,7 @@
       [exportFormats]="exportFormats()"
       [effectiveColumns]="store.effectiveColumns()"
       [dealerName]="config()?.context?.dealerDescription ?? null"
+      (reset)="onTableReset()"
     />
   }
 </div>
