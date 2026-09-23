@@ -1,12 +1,5 @@
 <div class="data-table">
   <div class="data-table__toolbar">
-    <div class="data-table__toolbar-info">
-      @if (title()) {
-        <h2 class="data-table__title">{{ title() }}</h2>
-      }
-      <span class="data-table__count">{{ resolvedTotalCount() }} records</span>
-    </div>
-
     <div class="data-table__toolbar-actions">
       <label class="data-table__page-size">
         Show
@@ -130,7 +123,7 @@
   }
 
   <div class="data-table__scroll-container">
-    <table cdk-table [dataSource]="pagedData()" [trackBy]="trackByFn" class="data-table__table table table-hover">
+    <table cdk-table [dataSource]="pagedData()" [trackBy]="trackByFn" class="data-table__table table table-striped table-hover">
       @if (selectionMode() !== 'none') {
         <ng-container cdkColumnDef="__select__" sticky>
           <th cdk-header-cell *cdkHeaderCellDef class="data-table__select-cell">
