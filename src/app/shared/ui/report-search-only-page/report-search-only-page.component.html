@@ -2,10 +2,6 @@
   <app-report-header-bar [title]="title()" />
   <app-report-dealer-identity [dealerCode]="dealerContext().dealerCode" [dealerName]="dealerContext().dealerDescription" />
   <div class="report-search-only-page__content">
-    @if (description()) {
-      <p class="report-search-only-page__description text-muted">{{ description() }}</p>
-    }
-
     <app-report-search-bar [initialValue]="initialValue()" [readonlyDealerFields]="true" />
 
     <div class="report-search-only-page__actions d-flex gap-2">

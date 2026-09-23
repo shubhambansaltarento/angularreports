@@ -21,22 +21,22 @@ describe('ReportSearchOnlyPageComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the title and description passed via route data', () => {
+  it('renders the title passed via route data', () => {
+    const fixture = createComponent();
+    fixture.componentRef.setInput('title', 'My Report');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('My Report');
+  });
+
+  it('renders no description text, even when the description input is set — that section was removed (remove-description-paragraph-23-09-2026-04_30_PM.md)', () => {
     const fixture = createComponent();
     fixture.componentRef.setInput('title', 'My Report');
     fixture.componentRef.setInput('description', 'Report description');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('My Report');
-    expect(fixture.nativeElement.textContent).toContain('Report description');
-  });
-
-  it('omits the description paragraph when description is empty', () => {
-    const fixture = createComponent();
-    fixture.componentRef.setInput('title', 'My Report');
-    fixture.detectChanges();
-
     expect(fixture.nativeElement.querySelector('.report-search-only-page__description')).toBeFalsy();
+    expect(fixture.nativeElement.textContent).not.toContain('Report description');
   });
 
   it('renders no Dealer Code/Description/Company Code fields — that identity is shown by ReportDealerIdentityComponent above, not this form (remove-dealer-code-description-company-code-section-23-09-2026-04_00_PM.md)', () => {
