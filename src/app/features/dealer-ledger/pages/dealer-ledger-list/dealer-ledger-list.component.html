@@ -5,41 +5,43 @@
     [dealerName]="dealerName()"
   />
 
-  <app-dealer-ledger-filter
-    class="dealer-ledger-list__filters"
-    [config]="config()"
-    (searched)="onSearch($event)"
-    (reset)="onReset()"
-  />
-
-  <button
-    type="button"
-    class="dealer-ledger-list__show-report-btn btn btn-sm btn-secondary"
-    [disabled]="filter().isSubmitDisabled()"
-    (click)="onShowReport()"
-  >
-    Show Report
-  </button>
-
-  @if (store.error(); as error) {
-    <div class="dealer-ledger-list__error">
-      <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
-      <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
-    </div>
-  }
-
-  @if (store.loading()) {
-    <app-loading-indicator />
-  } @else if (store.hasSearched() && store.data().length > 0) {
-    <app-dealer-ledger-table
-      class="dealer-ledger-list__table"
-      [rows]="store.data()"
-      [loading]="store.loading()"
-      [resetDisabled]="!filter().hasActiveFilters()"
-      [exportFormats]="exportFormats()"
-      [effectiveColumns]="store.effectiveColumns()"
-      [dealerName]="config()?.context?.dealerDescription ?? null"
-      (reset)="onTableReset()"
+  <div class="dealer-ledger-list__content">
+    <app-dealer-ledger-filter
+      class="dealer-ledger-list__filters"
+      [config]="config()"
+      (searched)="onSearch($event)"
+      (reset)="onReset()"
     />
-  }
+
+    <button
+      type="button"
+      class="dealer-ledger-list__show-report-btn btn btn-sm btn-secondary"
+      [disabled]="filter().isSubmitDisabled()"
+      (click)="onShowReport()"
+    >
+      Show Report
+    </button>
+
+    @if (store.error(); as error) {
+      <div class="dealer-ledger-list__error">
+        <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
+        <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
+      </div>
+    }
+
+    @if (store.loading()) {
+      <app-loading-indicator />
+    } @else if (store.hasSearched() && store.data().length > 0) {
+      <app-dealer-ledger-table
+        class="dealer-ledger-list__table"
+        [rows]="store.data()"
+        [loading]="store.loading()"
+        [resetDisabled]="!filter().hasActiveFilters()"
+        [exportFormats]="exportFormats()"
+        [effectiveColumns]="store.effectiveColumns()"
+        [dealerName]="config()?.context?.dealerDescription ?? null"
+        (reset)="onTableReset()"
+      />
+    }
+  </div>
 </div>

@@ -2,35 +2,37 @@
   <app-report-header-bar [title]="title" />
   <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
-  <div class="parts-packing-list-list__card">
-    <app-parts-packing-list-filter (searched)="onSearch($event)" (reset)="onReset()" />
+  <div class="parts-packing-list-list__content">
+    <div class="parts-packing-list-list__card">
+      <app-parts-packing-list-filter (searched)="onSearch($event)" (reset)="onReset()" />
 
-    <button
-      type="button"
-      class="parts-packing-list-list__show-report-btn btn btn-sm"
-      [disabled]="filter().isSubmitDisabled()"
-      (click)="onProcess()"
-    >
-      Show Report
-    </button>
-  </div>
-
-  @if (store.error(); as error) {
-    <div class="parts-packing-list-list__error">
-      <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
-      <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
+      <button
+        type="button"
+        class="parts-packing-list-list__show-report-btn btn btn-sm"
+        [disabled]="filter().isSubmitDisabled()"
+        (click)="onProcess()"
+      >
+        Show Report
+      </button>
     </div>
-  }
 
-  @if (store.loading()) {
-    <app-loading-indicator />
-  } @else if (store.hasSearched() && store.data().length > 0) {
-    <app-parts-packing-list-table
-      class="parts-packing-list-list__table"
-      [rows]="store.data()"
-      [columns]="store.columns()"
-      [loading]="store.loading()"
-      (reset)="onTableReset()"
-    />
-  }
+    @if (store.error(); as error) {
+      <div class="parts-packing-list-list__error">
+        <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
+        <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
+      </div>
+    }
+
+    @if (store.loading()) {
+      <app-loading-indicator />
+    } @else if (store.hasSearched() && store.data().length > 0) {
+      <app-parts-packing-list-table
+        class="parts-packing-list-list__table"
+        [rows]="store.data()"
+        [columns]="store.columns()"
+        [loading]="store.loading()"
+        (reset)="onTableReset()"
+      />
+    }
+  </div>
 </div>
