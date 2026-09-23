@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ReportSearchOnlyPageComponent } from './report-search-only-page.component';
-import { DealerContextService } from '../../services/dealer-context/dealer-context.service';
 
 describe('ReportSearchOnlyPageComponent', () => {
   beforeEach(async () => {
@@ -22,44 +21,51 @@ describe('ReportSearchOnlyPageComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the title and description passed via route data', () => {
+  it('renders the title passed via route data', () => {
+    const fixture = createComponent();
+    fixture.componentRef.setInput('title', 'My Report');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('My Report');
+  });
+
+  it('renders no description text, even when the description input is set — that section was removed (remove-description-paragraph-23-09-2026-04_30_PM.md)', () => {
     const fixture = createComponent();
     fixture.componentRef.setInput('title', 'My Report');
     fixture.componentRef.setInput('description', 'Report description');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('app-report-header-bar').textContent).toContain('My Report');
-    expect(fixture.nativeElement.textContent).toContain('Report description');
-  });
-
-  it('omits the description paragraph when description is empty', () => {
-    const fixture = createComponent();
-    fixture.componentRef.setInput('title', 'My Report');
-    fixture.detectChanges();
-
     expect(fixture.nativeElement.querySelector('.report-search-only-page__description')).toBeFalsy();
+    expect(fixture.nativeElement.textContent).not.toContain('Report description');
   });
 
-  it('prefills the search bar from the dealer context', () => {
+  it('renders no Dealer Code/Description/Company Code fields — that identity is shown by ReportDealerIdentityComponent above, not this form (remove-dealer-code-description-company-code-section-23-09-2026-04_00_PM.md)', () => {
     const fixture = createComponent();
-    const dealerContext = TestBed.inject(DealerContextService).dealerContext();
 
-    const dealerCodeInput: HTMLInputElement = fixture.nativeElement.querySelector('#report-search-bar-dealer-code');
-    expect(dealerCodeInput.value).toBe(dealerContext.dealerCode);
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-code')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('#report-search-bar-dealer-description')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('#report-search-bar-company-code')).toBeFalsy();
   });
 
-  it('shows the "table not yet available" placeholder message referencing the title', () => {
+  it('renders a placeholder data table with generic A/B/C/D columns and rows, matching every other report\'s table look (report-search-only-page-table-and-button-theme-23-09-2026-03_30_PM.md)', () => {
     const fixture = createComponent();
     fixture.componentRef.setInput('title', 'My Report');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('The table for "My Report" is not yet available');
+    const table = fixture.nativeElement.querySelector('app-data-table');
+    expect(table).toBeTruthy();
+    const headers: NodeListOf<HTMLElement> = table.querySelectorAll('th');
+    expect(Array.from(headers).map((header) => header.textContent?.trim().charAt(0))).toEqual(['A', 'B', 'C', 'D']);
+    expect(table.querySelectorAll('tr[cdk-row]').length).toBeGreaterThan(0);
   });
 
   it('reset() clears the search bar back to empty values', () => {
     const fixture = createComponent();
-    const dealerCodeInput: HTMLInputElement = fixture.nativeElement.querySelector('#report-search-bar-dealer-code');
-    expect(dealerCodeInput.value).not.toBe('');
+    const dateFromInput: HTMLInputElement = fixture.nativeElement.querySelector('#report-search-bar-date-from');
+    dateFromInput.value = '2026-01-01';
+    dateFromInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(dateFromInput.value).toBe('2026-01-01');
 
     const resetButton: HTMLButtonElement = Array.from(
       fixture.nativeElement.querySelectorAll('.report-search-only-page__actions button'),
@@ -67,14 +73,14 @@ describe('ReportSearchOnlyPageComponent', () => {
     resetButton.click();
     fixture.detectChanges();
 
-    expect(dealerCodeInput.value).toBe('');
+    expect(dateFromInput.value).toBe('');
   });
 
-  it('does not throw when Search is clicked (no data source wired up yet)', () => {
+  it('does not throw when Show Report is clicked (no data source wired up yet)', () => {
     const fixture = createComponent();
     const searchButton: HTMLButtonElement = Array.from(
       fixture.nativeElement.querySelectorAll('.report-search-only-page__actions button'),
-    ).find((button) => (button as HTMLButtonElement).textContent?.trim() === 'Search') as HTMLButtonElement;
+    ).find((button) => (button as HTMLButtonElement).textContent?.trim() === 'Show Report') as HTMLButtonElement;
 
     expect(() => searchButton.click()).not.toThrow();
   });

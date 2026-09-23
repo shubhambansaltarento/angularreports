@@ -22,16 +22,19 @@
   gap: 0.5rem;
 }
 
+// Report blue, translucent — same value as .html-pdf-viewer__title's toolbar and the
+// report-header/table-header tokens — show-report-button-theme-23-09-2026-03_00_PM.md.
 .warranty-cost-report-list__show-report-btn {
   align-self: flex-start;
-  background-color: rgb(47, 92, 138);
-  border-color: rgb(47, 92, 138);
+  background-color: rgba(47, 92, 138, 0.7411764706);
+  border-color: rgba(47, 92, 138, 0.7411764706);
   color: #fff;
+  font-size: 0.8125rem;
 }
 
 .warranty-cost-report-list__show-report-btn:hover:not(:disabled) {
-  background-color: rgb(37, 74, 111);
-  border-color: rgb(37, 74, 111);
+  background-color: rgba(37, 74, 111, 0.7411764706);
+  border-color: rgba(37, 74, 111, 0.7411764706);
 }
 
 .warranty-cost-report-list__error {
