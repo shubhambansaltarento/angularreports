@@ -13,6 +13,15 @@
   }
 
   input {
+    // Explicit height, not just padding/font-size — a native `<input type="date">` sibling
+    // renders a few pixels taller than a text input with identical padding (the browser's
+    // built-in calendar-picker control adds its own height), so without this the two input
+    // types don't line up even though their labels do —
+    // parts-packing-list-invoice-delivery-input-height-match-date-23-09-2026-02_30_PM.md.
+    height: 2rem;
+    // Nudges the input down to actually sit flush with the date inputs' baseline — confirmed
+    // in DevTools against the real rendered page, not just matched height/padding.
+    margin-top: 0.5rem;
     padding: 0.25rem 0.5rem;
     font-size: 0.8125rem;
   }

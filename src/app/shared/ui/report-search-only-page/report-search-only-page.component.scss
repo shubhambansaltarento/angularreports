@@ -5,5 +5,28 @@
 .report-search-only-page {
   display: flex;
   flex-direction: column;
+}
+
+// Padding lives on the content wrapper, not the outer element — so the blue header bar/dealer
+// identity line span the full page width instead of being inset by this page's own padding —
+// report-header-bar-full-width-23-09-2026-01_00_PM.md.
+.report-search-only-page__content {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
+  padding: 1rem;
+}
+
+// Report blue, translucent — same value as every other report's Show Report button —
+// show-report-button-theme-23-09-2026-03_00_PM.md.
+.report-search-only-page__show-report-btn {
+  background-color: rgba(47, 92, 138, 0.7411764706);
+  border-color: rgba(47, 92, 138, 0.7411764706);
+  color: #fff;
+  font-size: 0.8125rem;
+}
+
+.report-search-only-page__show-report-btn:hover:not(:disabled) {
+  background-color: rgba(37, 74, 111, 0.7411764706);
+  border-color: rgba(37, 74, 111, 0.7411764706);
 }

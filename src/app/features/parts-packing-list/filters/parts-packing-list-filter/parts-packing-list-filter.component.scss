@@ -8,7 +8,11 @@
 .parts-packing-list-filter__field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  // Matches `TypeaheadInputComponent`'s compact label-to-input gap (0.125rem) — Invoice
+  // Number/Delivery Number use that component, Date From/Date To are plain inputs here; a
+  // mismatched gap (this was 0.25rem) made all four fields' inputs sit at slightly different
+  // heights, breaking the single-line alignment — fields-aligned-in-one-line-23-09-2026-02_00_PM.md.
+  gap: 0.125rem;
   width: 200px;
   text-align: left;
 }
@@ -19,5 +23,10 @@
 }
 
 .form-control-sm {
+  // Matches `TypeaheadInputComponent`'s compact input height, so Date From/Date To line up
+  // with Invoice Number/Delivery Number despite the browser's own calendar-picker control
+  // otherwise rendering `type="date"` inputs a few pixels taller —
+  // parts-packing-list-invoice-delivery-input-height-match-date-23-09-2026-02_30_PM.md.
+  height: 2rem;
   font-size: 0.8125rem;
 }

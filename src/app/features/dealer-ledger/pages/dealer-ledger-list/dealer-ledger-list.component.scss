@@ -36,6 +36,17 @@
   margin: 0;
 }
 
+// Report blue, translucent — same value as .html-pdf-viewer__title's toolbar and the
+// report-header/table-header tokens — show-report-button-theme-23-09-2026-03_00_PM.md.
 .dealer-ledger-list__show-report-btn {
   align-self: flex-start;
+  background-color: rgba(47, 92, 138, 0.7411764706);
+  border-color: rgba(47, 92, 138, 0.7411764706);
+  color: #fff;
+  font-size: 0.8125rem;
+}
+
+.dealer-ledger-list__show-report-btn:hover:not(:disabled) {
+  background-color: rgba(37, 74, 111, 0.7411764706);
+  border-color: rgba(37, 74, 111, 0.7411764706);
 }

@@ -1,18 +1,23 @@
 <section class="report-search-only-page container-fluid p-0">
   <app-report-header-bar [title]="title()" />
   <app-report-dealer-identity [dealerCode]="dealerContext().dealerCode" [dealerName]="dealerContext().dealerDescription" />
-  @if (description()) {
-    <p class="report-search-only-page__description text-muted">{{ description() }}</p>
-  }
+  <div class="report-search-only-page__content">
+    @if (description()) {
+      <p class="report-search-only-page__description text-muted">{{ description() }}</p>
+    }
 
-  <app-report-search-bar [initialValue]="initialValue()" />
+    <app-report-search-bar [initialValue]="initialValue()" [readonlyDealerFields]="true" />
 
-  <div class="report-search-only-page__actions d-flex gap-2">
-    <button type="button" class="btn btn-primary" (click)="onSearch()">Search</button>
-    <button type="button" class="btn btn-outline-secondary" (click)="onReset()">Reset</button>
+    <div class="report-search-only-page__actions d-flex gap-2">
+      <button type="button" class="report-search-only-page__show-report-btn btn btn-sm" (click)="onSearch()">Show Report</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onReset()">Reset</button>
+    </div>
+
+    <app-data-table
+      tableId="report-search-only-page"
+      trackByKey="id"
+      [columns]="placeholderColumns"
+      [data]="placeholderRows"
+    />
   </div>
-
-  <p class="report-search-only-page__placeholder text-muted fst-italic" role="status">
-    The table for "{{ title() }}" is not yet available — its columns are pending confirmed source data.
-  </p>
 </section>

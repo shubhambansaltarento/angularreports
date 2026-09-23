@@ -176,7 +176,7 @@ describe('DealerLedgerListComponent', () => {
     expect(fixture.nativeElement.querySelector('app-dealer-ledger-table')).toBeFalsy();
   });
 
-  it('renders a small, secondary "Show Report" button (bootstrap btn btn-sm btn-secondary)', () => {
+  it('renders a small "Show Report" button, themed with the report blue (bootstrap btn btn-sm)', () => {
     const fixture = createComponent();
     const button: HTMLButtonElement = fixture.nativeElement.querySelector(
       '.dealer-ledger-list__show-report-btn',
@@ -186,7 +186,7 @@ describe('DealerLedgerListComponent', () => {
     expect(button.textContent?.trim()).toBe('Show Report');
     expect(button.classList).toContain('btn');
     expect(button.classList).toContain('btn-sm');
-    expect(button.classList).toContain('btn-secondary');
+    expect(button.classList).not.toContain('btn-secondary');
   });
 
   it('clicking Show Report delegates to the filter panel\'s submit(), which emits searched', () => {
