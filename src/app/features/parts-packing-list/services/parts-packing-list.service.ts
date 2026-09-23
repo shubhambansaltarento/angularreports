@@ -55,32 +55,35 @@ export class PartsPackingListService {
    * `dealerCode` is supplied by the caller (this report's own UI never collects it — see
    * the spec's Open decisions) alongside the filter panel's Date Range, and is zero-padded
    * here before being sent — same convention as Dealer Ledger's `kunnr`/Warranty Cost's
-   * `dealerCode`. `companyCode` is sent alongside it, sourced from config. Invoice/Delivery
-   * Number are applied client-side afterward (`applyClientFilters`), since the confirmed
-   * API contract does not accept them.
+   * `dealerCode`. `companyCode` is sent alongside it, sourced from config.
+   *
+   * Returns the raw (unfiltered) rows — Invoice Number/Delivery Number are never sent to,
+   * or applied within, this fetch, since the confirmed API contract does not accept them.
+   * `PartsPackingListStore` applies them afterward via `filterRows()`, both on a fresh fetch
+   * and when reusing a cached fetch whose Date Range hasn't changed
+   * (skip-refetch-when-date-range-unchanged-23-09-2026-11_00_AM.md).
    */
-  getEntries(dealerCode: string, companyCode: string, filters: PartsPackingListFilters): Observable<PartsPackingListResponse> {
+  getEntries(dealerCode: string, companyCode: string, dateFrom: string | undefined, dateTo: string | undefined): Observable<PartsPackingListResponse> {
     const body = {
       dealerCode: dealerCode ? DEALER_CODE_PREFIX + dealerCode : '',
       companyCode,
-      fromDate: filters.dateFrom ?? '',
-      toDate: filters.dateTo ?? '',
+      fromDate: dateFrom ?? '',
+      toDate: dateTo ?? '',
     };
     console.log('[Parts Packing List] Loading report data...', body);
 
     return this.http.post<Record<string, unknown>[]>(PARTS_PACKING_LIST_DATA_URL, body).pipe(
       tap((rows) => console.log('[Parts Packing List] Report data loaded (raw):', rows)),
-      map((rows) => this.toResponse(rows, filters)),
+      map((rawRows) => this.toResponse(rawRows)),
       tap((response) => console.log(`[Parts Packing List] Report data mapped — ${response.rows.length} row(s).`, response)),
     );
   }
 
-  private toResponse(rawRows: Record<string, unknown>[], filters: PartsPackingListFilters): PartsPackingListResponse {
+  private toResponse(rawRows: Record<string, unknown>[]): PartsPackingListResponse {
     const rows = rawRows.map((row, index) => ({ id: String(index), ...row }) as PartsPackingListRow);
-    const filteredRows = this.applyClientFilters(rows, filters);
     const columns = this.deriveColumns(rawRows[0]);
 
-    return { rows: filteredRows, totalCount: filteredRows.length, columns };
+    return { rows, totalCount: rows.length, columns };
   }
 
   /** Derives the table's columns from the first raw row's keys — no fixed column definition exists for this report. */
@@ -89,8 +92,13 @@ export class PartsPackingListService {
     return Object.keys(firstRow).map((key) => ({ key, header: toTitleCaseHeader(key), sortable: true }));
   }
 
-  /** Applies Invoice/Delivery Number as client-side filters — not sent to the real API (see class doc). */
-  private applyClientFilters(rows: PartsPackingListRow[], filters: PartsPackingListFilters): PartsPackingListRow[] {
+  /**
+   * Applies Invoice/Delivery Number as client-side filters over already-fetched rows — not
+   * sent to the real API (see `getEntries()`'s doc). Public: `PartsPackingListStore` calls
+   * this both right after a fresh fetch and when re-filtering a cached fetch whose Date Range
+   * is unchanged.
+   */
+  filterRows(rows: PartsPackingListRow[], filters: PartsPackingListFilters): PartsPackingListRow[] {
     return rows.filter((row) => {
       if (filters.invoiceNumber && !this.contains(row['invoice_number'], filters.invoiceNumber)) return false;
       if (filters.deliveryNumber && !this.contains(row['delivery_number'], filters.deliveryNumber)) return false;
