@@ -27,28 +27,13 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  // Only child now that the title/record-count block is gone
+  // (pagination-theme-no-heading-alternating-rows-23-09-2026-12_00_PM.md) — pushed to the
+  // right, matching the reference layout's Show/Search/Columns/Export/Reset row.
+  justify-content: flex-end;
   gap: 0.75rem;
-  background: #fafafa;
   border-bottom: 1px solid #e0e0e0;
   padding: 0.625rem 1.25rem;
-}
-
-.data-table__toolbar-info {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.data-table__title {
-  margin: 0;
-  font-size: 1.125rem;
-  color: #212529;
-}
-
-.data-table__count {
-  color: #666;
-  font-size: 0.875rem;
 }
 
 .data-table__toolbar-actions {
@@ -203,6 +188,10 @@
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #dee2e6;
+  // Neutralizes Bootstrap's own `.table-striped` accent (a faint tint painted onto odd
+  // rows' cells via this variable) — striping here is our own `tbody tr:nth-of-type(even)`
+  // rule below, so odd rows stay pure white rather than getting Bootstrap's tint on top.
+  --bs-table-accent-bg: transparent;
 }
 
 .data-table__table th,
@@ -226,7 +215,12 @@
   font-size: 0.8125rem;
 }
 
-// Striped body rows — odd rows white, even rows light grey. A darker grey than the earlier
+// Striped body rows — odd rows white, even rows light grey. The `<table>` also carries
+// Bootstrap's own `table-striped` class (https://getbootstrap.com/docs/4.0/content/tables/#striped-rows),
+// with its accent neutralized below (`--bs-table-accent-bg: transparent`) so only this rule's
+// color applies — a bare `:nth-child(even)` is used rather than Bootstrap's own
+// `tbody tr:nth-of-type()` selector, since this app's CDK table markup doesn't reliably wrap
+// rows in a `<tbody>` for that to match against. #e9ecef is a darker grey than the earlier
 // #f5f7fa — that was too close to white to read as a visible stripe once borders/long
 // multi-line cell content (e.g. Dealer Ledger's address column) were in the mix.
 .data-table__table tr[cdk-row]:nth-child(even) {
@@ -339,7 +333,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.75rem;
   font-size: 0.875rem;
 }
@@ -389,8 +383,8 @@
 }
 
 .data-table__page-number--active {
-  background: #212529;
-  border-color: #212529;
+  background: rgb(47, 92, 138);
+  border-color: rgb(47, 92, 138);
   color: #fff;
 }
 

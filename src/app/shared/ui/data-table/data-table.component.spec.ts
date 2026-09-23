@@ -175,7 +175,6 @@ describe('DataTableComponent', () => {
     const { fixture } = createHost();
     const rows = fixture.nativeElement.querySelectorAll('tr[cdk-row]');
     expect(rows.length).toBe(10);
-    expect(fixture.nativeElement.textContent).toContain('25 records');
   });
 
   it('renders alternating row backgrounds — even rows visibly grey against odd/white rows (alternate-row-colors-distinct-contrast-21-09-2026-07_30_PM.md)', () => {
@@ -234,7 +233,6 @@ describe('DataTableComponent', () => {
       );
       expect(Array.from(pageButtons).map((button) => button.textContent?.trim())).toEqual(['1', '2', '3', '4']);
       expect(fixture.nativeElement.querySelector('.data-table__page-ellipsis')).toBeFalsy();
-      expect(fixture.nativeElement.textContent).toContain('40 records');
     });
 
     it('shows exactly 10 rows per page, with a full (non-partial) last page', async () => {
@@ -388,12 +386,11 @@ describe('DataTableComponent', () => {
       fixture.detectChanges();
 
       // Not yet applied — debounce hasn't elapsed.
-      expect(fixture.nativeElement.textContent).toContain('25 records');
+      expect(fixture.nativeElement.querySelectorAll('tr[cdk-row]').length).toBe(10);
 
       vi.advanceTimersByTime(300);
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.textContent).toContain('1 records');
       const rows = fixture.nativeElement.querySelectorAll('tr[cdk-row]');
       expect(rows.length).toBe(1);
     } finally {
@@ -836,7 +833,11 @@ describe('DataTableComponent', () => {
 
     it('shows the server totalCount, not the current page array length', async () => {
       const fixture = await createServerPaginatedHost();
-      expect(fixture.nativeElement.textContent).toContain('41 records');
+      const pageButtons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll(
+        '.data-table__page-number',
+      );
+      // totalCount=41 at page size 10 → 5 pages, not 1 (which `data`'s own 10-row page length would imply).
+      expect(Array.from(pageButtons).map((button) => button.textContent?.trim())).toEqual(['1', '2', '3', '4', '5']);
     });
 
     it('renders `data` as-is without re-slicing it locally', async () => {
