@@ -72,7 +72,7 @@ describe('PartsPackingListService', () => {
   });
 
   it('POSTs dealerCode zero-padded with 00000, plus companyCode/fromDate/toDate, to fetch-data-bricks-data', () => {
-    service.getEntries('10015', 'TSL', { dateFrom: '2026-08-01', dateTo: '2026-09-01' }).subscribe();
+    service.getEntries('10015', 'TSL', '2026-08-01', '2026-09-01').subscribe();
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     expect(req.request.method).toBe('POST');
@@ -87,7 +87,7 @@ describe('PartsPackingListService', () => {
 
   it('derives columns from the first row\'s keys, Title Casing snake_case field names', () => {
     let result: { columns: { key: string; header: string }[] } | undefined;
-    service.getEntries('10015', 'TSL', {}).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', undefined, undefined).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([RAW_ROW]);
@@ -102,7 +102,7 @@ describe('PartsPackingListService', () => {
 
   it('maps every raw field onto the row and adds a synthetic id', () => {
     let result: { rows: Record<string, unknown>[] } | undefined;
-    service.getEntries('10015', 'TSL', {}).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', undefined, undefined).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([RAW_ROW]);
@@ -112,7 +112,7 @@ describe('PartsPackingListService', () => {
 
   it('returns no columns for an empty response', () => {
     let result: { columns: unknown[] } | undefined;
-    service.getEntries('10015', 'TSL', {}).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', undefined, undefined).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([]);
@@ -120,14 +120,25 @@ describe('PartsPackingListService', () => {
     expect(result?.columns).toEqual([]);
   });
 
-  it('applies invoiceNumber/deliveryNumber as client-side substring filters', () => {
+  it('getEntries() returns raw, unfiltered rows — Invoice/Delivery Number are never applied within the fetch itself', () => {
     let result: { rows: Record<string, unknown>[] } | undefined;
-    service.getEntries('10015', 'TSL', { invoiceNumber: '523016' }).subscribe((response) => (result = response));
+    service.getEntries('10015', 'TSL', undefined, undefined).subscribe((response) => (result = response));
 
     const req = httpMock.expectOne(PARTS_PACKING_LIST_DATA_URL);
     req.flush([RAW_ROW, { ...RAW_ROW, invoice_number: '9999999999' }]);
 
-    expect(result?.rows.length).toBe(1);
-    expect(result?.rows[0]['invoice_number']).toBe('3005523016');
+    expect(result?.rows.length).toBe(2);
+  });
+
+  it('filterRows() applies invoiceNumber/deliveryNumber as client-side substring filters', () => {
+    const rows = [
+      { id: '0', ...RAW_ROW },
+      { id: '1', ...RAW_ROW, invoice_number: '9999999999' },
+    ];
+
+    const result = service.filterRows(rows as never, { invoiceNumber: '523016' });
+
+    expect(result.length).toBe(1);
+    expect(result[0]['invoice_number']).toBe('3005523016');
   });
 });

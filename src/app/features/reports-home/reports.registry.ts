@@ -1,6 +1,5 @@
 import { ReportConfig } from '../../shared/models/report-config.model';
 import { DEALER_LEDGER_REPORT_CONFIG } from '../dealer-ledger/dealer-ledger.config';
-import { GOODS_ACKNOWLEDGEMENT_REPORT_CONFIG } from '../goods-acknowledgement/goods-acknowledgement.config';
 import { PARTS_PACKING_LIST_REPORT_CONFIG } from '../parts-packing-list/parts-packing-list.config';
 import { PQM_REPORT_CONFIG } from '../pqm/pqm.config';
 import { VOR_PRINT_REPORT_CONFIG } from '../vor-print/vor-print.config';
@@ -19,7 +18,6 @@ export const REPORTS_CATALOG: ReportConfig[] = [
   WARRANTY_RECONCILIATION_REPORT_CONFIG,
   WARRANTY_COST_REPORT_CONFIG,
   PARTS_PACKING_LIST_REPORT_CONFIG,
-  GOODS_ACKNOWLEDGEMENT_REPORT_CONFIG,
   WARRANTY_LABOUR_TAX_INVOICE_REPORT_CONFIG,
   VOR_PRINT_REPORT_CONFIG,
   PQM_REPORT_CONFIG,
