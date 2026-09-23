@@ -7,12 +7,20 @@
 .dealer-ledger-list {
   display: flex;
   flex-direction: column;
+}
+
+// Padding lives on the content wrapper, not the outer element — so
+// `app-dealer-ledger-toolbar`'s blue header bar spans the full page width instead of being
+// inset by this page's own padding — report-header-bar-full-width-23-09-2026-01_00_PM.md.
+.dealer-ledger-list__content {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   padding: 1rem;
 }
 
 @media (min-width: 992px) {
-  .dealer-ledger-list {
+  .dealer-ledger-list__content {
     padding: 1.5rem;
   }
 }

@@ -2,34 +2,36 @@
   <app-report-header-bar [title]="title" />
   <app-report-dealer-identity [dealerCode]="dealerCode()" [dealerName]="dealerName()" />
 
-  <app-warranty-cost-report-filter [config]="config()" (searched)="onSearch($event)" />
+  <div class="warranty-cost-report-list__content">
+    <app-warranty-cost-report-filter [config]="config()" (searched)="onSearch($event)" />
 
-  <div class="warranty-cost-report-list__actions">
-    <button
-      type="button"
-      class="warranty-cost-report-list__show-report-btn btn btn-sm"
-      [disabled]="filter().isSubmitDisabled()"
-      (click)="onShowReport()"
-    >
-      Show Report
-    </button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onReset()">Reset</button>
-  </div>
-
-  @if (store.error(); as error) {
-    <div class="warranty-cost-report-list__error">
-      <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
-      <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
+    <div class="warranty-cost-report-list__actions">
+      <button
+        type="button"
+        class="warranty-cost-report-list__show-report-btn btn btn-sm"
+        [disabled]="filter().isSubmitDisabled()"
+        (click)="onShowReport()"
+      >
+        Show Report
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onReset()">Reset</button>
     </div>
-  }
 
-  @if (store.loading()) {
-    <app-loading-indicator />
-  } @else if (store.hasSearched() && store.statement(); as statement) {
-    @if (statement.dealerGroups.length > 0) {
-      <app-html-pdf-viewer class="warranty-cost-report-list__viewer" title="Warranty Cost Statement" filename="warranty-cost-statement">
-        <app-warranty-cost-statement [statement]="statement" [dateFrom]="dateFrom" [dateTo]="dateTo" />
-      </app-html-pdf-viewer>
+    @if (store.error(); as error) {
+      <div class="warranty-cost-report-list__error">
+        <app-dismissible-alert [message]="error" (dismissed)="store.dismissError()" />
+        <button type="button" class="__retry-btn" (click)="onRetry()">Retry</button>
+      </div>
     }
-  }
+
+    @if (store.loading()) {
+      <app-loading-indicator />
+    } @else if (store.hasSearched() && store.statement(); as statement) {
+      @if (statement.dealerGroups.length > 0) {
+        <app-html-pdf-viewer class="warranty-cost-report-list__viewer" title="Warranty Cost Statement" filename="warranty-cost-statement">
+          <app-warranty-cost-statement [statement]="statement" [dateFrom]="dateFrom" [dateTo]="dateTo" />
+        </app-html-pdf-viewer>
+      }
+    }
+  </div>
 </div>
