@@ -8,4 +8,5 @@ export const PQM_REPORT_CONFIG: ReportConfig = {
   // Search parameters only for now — table columns are pending confirmed source data.
   hasTable: false,
   apiIntegrated: false,
+  reportKey: 'PQM',
 };

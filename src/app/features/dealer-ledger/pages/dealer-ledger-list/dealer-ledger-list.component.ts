@@ -13,11 +13,14 @@ import { DealerLedgerService } from '../../services/dealer-ledger.service';
 import { DealerLedgerStore } from '../../store/dealer-ledger.store';
 import { ExportFormat } from '../../../../shared/services/export/models/export-format.model';
 
-/** Maps the config API's backend format names onto the app's own `ExportFormat` values. */
-const EXPORT_FORMAT_BY_BACKEND_NAME: Record<string, ExportFormat> = {
-  CSV: 'csv',
+/**
+ * Maps the config API's backend format names onto the app's own `ExportFormat` values —
+ * CSV/PRINT are deliberately absent, so even if the backend's config lists them, they're
+ * filtered out below rather than offered in the Export panel —
+ * export-only-excel-and-pdf-28-09-2026-10_00_AM.md.
+ */
+const EXPORT_FORMAT_BY_BACKEND_NAME: Partial<Record<string, ExportFormat>> = {
   XLSX: 'excel',
-  PRINT: 'print',
   PDF: 'pdf',
 };
 

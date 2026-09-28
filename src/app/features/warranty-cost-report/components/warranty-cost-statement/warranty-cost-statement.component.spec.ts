@@ -93,19 +93,21 @@ describe('WarrantyCostStatementComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('AUTHORISED SIGNATORY');
   });
 
-  it('renders the row order as dealer (purple), then a 2-row memo label/value table (green), then the column headers (blue)', () => {
+  it('renders both header rows (memo labels, then column headers) above their data (memo values, then line items) — stack-memo-and-item-headers-above-data-28-09-2026-11_15_AM.md', () => {
     const fixture = createComponent();
 
     const rows: HTMLTableRowElement[] = Array.from(fixture.nativeElement.querySelectorAll('tbody > tr'));
     const dealerRow = rows[0];
     const memoLabelRow = rows[1];
-    const memoValueRow = rows[2];
-    const columnHeaderRow = rows[3];
+    const columnHeaderRow = rows[2];
+    const memoValueRow = rows[3];
+    const firstLineItemRow = rows[4];
 
     expect(dealerRow.classList).toContain('warranty-cost-statement__dealer-row');
     expect(memoLabelRow.classList).toContain('warranty-cost-statement__memo-row--label');
     expect(memoValueRow.classList).toContain('warranty-cost-statement__memo-row');
     expect(columnHeaderRow.classList).toContain('warranty-cost-statement__column-header');
+    expect(firstLineItemRow.textContent).toContain('K6242080');
 
     expect(memoLabelRow.textContent).toContain('CN MEMO NO.');
     expect(memoLabelRow.textContent).toContain('REF DATE');

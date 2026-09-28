@@ -1,6 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, of, tap } from 'rxjs';
 import { CommonReportSearchFilters } from '../../models/report-search-filters.model';
 import { DealerContextService } from '../../services/dealer-context/dealer-context.service';
+import { ReportApiService } from '../../services/report-api/report-api.service';
 import { DataTableComponent } from '../data-table/data-table.component';
 import { TableColumn } from '../data-table/models/table-column.model';
 import { ReportDealerIdentityComponent } from '../report-dealer-identity/report-dealer-identity.component';
@@ -41,10 +44,16 @@ const PLACEHOLDER_ROWS: PlaceholderRow[] = Array.from({ length: 5 }, (_, index) 
 /**
  * Shared route target for every report that has search parameters defined but no confirmed
  * table schema/data source yet (Multi-Report Framework Specification §6/§13). One component
- * serves all such reports; each route supplies only `title`/`description` via route `data`
- * (see `app.routes.ts`), sourced from that report's own `ReportConfig`. Renders a placeholder
- * table (see `PLACEHOLDER_COLUMNS`/`PLACEHOLDER_ROWS` above) so the page's overall look
- * matches every other report's, even though no real schema/rows exist yet.
+ * serves all such reports; each route supplies `title`/`description`/`reportKey` via route
+ * `data` (see `app.routes.ts`), sourced from that report's own `ReportConfig`. Renders a
+ * placeholder table (see `PLACEHOLDER_COLUMNS`/`PLACEHOLDER_ROWS` above) so the page's overall
+ * look matches every other report's, even though no real schema/rows exist yet.
+ *
+ * `reportKey`, when supplied, is fetched once on entry via the generic, report-keyed
+ * `GET {baseUrl}reports/{reportKey}/config` endpoint (`ReportApiService`, the same client
+ * every other report's `getConfig()` uses) — logged only, since this page has no table/store
+ * of its own yet to bind the response into —
+ * search-only-report-config-fetch-23-09-2026-05_00_PM.md.
  */
 @Component({
   selector: 'app-report-search-only-page',
@@ -56,12 +65,45 @@ const PLACEHOLDER_ROWS: PlaceholderRow[] = Array.from({ length: 5 }, (_, index) 
 export class ReportSearchOnlyPageComponent {
   readonly title = input('');
   readonly description = input('');
+  readonly reportKey = input<string | undefined>(undefined);
 
   protected readonly placeholderColumns = PLACEHOLDER_COLUMNS;
   protected readonly placeholderRows = PLACEHOLDER_ROWS;
 
   protected readonly dealerContext = inject(DealerContextService).dealerContext;
   protected readonly searchBar = viewChild.required(ReportSearchBarComponent);
+
+  private readonly reportApi = inject(ReportApiService);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly config = signal<unknown>(null);
+
+  /** Guards the fetch below against re-running — `reportKey()` is set once per route and never changes for a live instance. */
+  private hasFetchedConfig = false;
+
+  constructor() {
+    // `reportKey()` — a route-data-bound input — isn't guaranteed to be set yet at
+    // constructor-body-execution time, so this reacts via `effect()` rather than reading it
+    // directly here.
+    effect(() => {
+      const key = this.reportKey();
+      if (!key || this.hasFetchedConfig) return;
+      this.hasFetchedConfig = true;
+
+      console.log(`[${key}] Loading report config...`);
+      this.reportApi
+        .getConfig(key)
+        .pipe(
+          tap((config) => console.log(`[${key}] Report config loaded:`, config)),
+          catchError((error) => {
+            console.error(`[${key}] Report config fetch failed.`, error);
+            return of(null);
+          }),
+          // `effect()` callbacks run outside an injection context, so the DestroyRef must be explicit.
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe((config) => this.config.set(config));
+    });
+  }
 
   /** Prefills the common search fields from the current dealer's context (mocked auth API). */
   protected readonly initialValue = computed<CommonReportSearchFilters>(() => {

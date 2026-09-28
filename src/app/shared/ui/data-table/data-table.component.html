@@ -1,15 +1,17 @@
 <div class="data-table">
   <div class="data-table__toolbar">
     <div class="data-table__toolbar-actions">
-      <label class="data-table__page-size">
-        Show
-        <select class="data-table__page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
-          @for (option of pageSizeOptions(); track option) {
-            <option [value]="option">{{ option }}</option>
-          }
-        </select>
-        entries
-      </label>
+      @if (showPageSizeSelector()) {
+        <label class="data-table__page-size">
+          Show
+          <select class="data-table__page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+            @for (option of pageSizeOptions(); track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+          entries
+        </label>
+      }
 
       <input
         class="data-table__search data-table__pill-input form-control form-control-sm"
@@ -33,6 +35,7 @@
           <div class="data-table__column-menu-panel" role="menu">
             <app-data-table-column-settings
               [columns]="columnSettingsItems()"
+              [showPinControls]="false"
               (toggleVisibility)="onToggleColumnVisibility($event)"
               (moveUp)="onMoveColumnUp($event)"
               (moveDown)="onMoveColumnDown($event)"
@@ -154,7 +157,22 @@
           [sticky]="column.pinned === 'start'"
           [stickyEnd]="column.pinned === 'end'"
         >
-          <th cdk-header-cell *cdkHeaderCellDef [style.width]="column.width ?? null">
+          <th
+            cdk-header-cell
+            *cdkHeaderCellDef
+            [style.width]="column.width ?? null"
+            [attr.draggable]="isColumnLocked(column.key) ? null : 'true'"
+            [attr.title]="isColumnLocked(column.key) ? 'Locked column' : 'Drag onto another column to swap places'"
+            [class.data-table__header-cell--locked]="isColumnLocked(column.key)"
+            [class.data-table__header-cell--draggable]="!isColumnLocked(column.key)"
+            [class.data-table__header-cell--dragging]="draggingColumnKey() === column.key"
+            [class.data-table__header-cell--drop-target]="dropTargetColumnKey() === column.key"
+            (dragstart)="onHeaderDragStart($event, column.key)"
+            (dragover)="onHeaderDragOver($event, column.key)"
+            (dragleave)="onHeaderDragLeave(column.key)"
+            (drop)="onHeaderDrop($event, column.key)"
+            (dragend)="onHeaderDragEnd()"
+          >
             @if (column.sortable) {
               <button type="button" class="data-table__sort-button" (click)="onSortColumn(column.key)">
                 {{ column.header }}

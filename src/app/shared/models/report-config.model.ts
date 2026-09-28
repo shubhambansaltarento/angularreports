@@ -21,4 +21,12 @@ export interface ReportConfig {
    * vs. "Reports in Progress" grouping — three-section-status-grouping-17-09-2026-09_10_AM.md.
    */
   apiIntegrated: boolean;
+  /**
+   * The generic `ReportApiService`'s dynamic path segment (e.g. `'PQM'`) — `GET
+   * {baseUrl}reports/{reportKey}/config`. Only set for reports whose config endpoint is
+   * actually being called today; omitted for reports with their own dedicated
+   * page/service that source the key elsewhere —
+   * search-only-report-config-fetch-23-09-2026-05_00_PM.md.
+   */
+  reportKey?: string;
 }

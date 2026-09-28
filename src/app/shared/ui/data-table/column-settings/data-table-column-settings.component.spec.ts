@@ -91,6 +91,37 @@ describe('DataTableColumnSettingsComponent', () => {
     expect(emitted).toEqual({ key: 'name', pinned: 'end' });
   });
 
+  it('disables every control on a locked item and moves into its slot (lock-first-and-last-columns-28-09-2026-01_35_PM.md)', () => {
+    const fixture = TestBed.createComponent(DataTableColumnSettingsComponent);
+    fixture.componentRef.setInput('columns', [
+      { ...COLUMNS[0], locked: true },
+      COLUMNS[1],
+      { ...COLUMNS[2], locked: true },
+    ]);
+    fixture.detectChanges();
+
+    const items = fixture.nativeElement.querySelectorAll('.data-table-column-settings__item');
+    const control = (index: number, selector: string) => items[index].querySelector(selector) as HTMLInputElement;
+
+    expect(control(0, 'input[type="checkbox"]').disabled).toBe(true);
+    expect(control(0, 'button[aria-label="Move column down"]').disabled).toBe(true);
+    expect(control(0, '.data-table-column-settings__pin').disabled).toBe(true);
+    expect(items[0].querySelector('.data-table-column-settings__lock')).toBeTruthy();
+    // The middle item sits between two locked ones, so it can't move either way.
+    expect(control(1, 'button[aria-label="Move column up"]').disabled).toBe(true);
+    expect(control(1, 'button[aria-label="Move column down"]').disabled).toBe(true);
+    expect(items[1].querySelector('.data-table-column-settings__lock')).toBeNull();
+  });
+
+  it('hides the pin selector when showPinControls is false', () => {
+    const fixture = TestBed.createComponent(DataTableColumnSettingsComponent);
+    fixture.componentRef.setInput('columns', COLUMNS);
+    fixture.componentRef.setInput('showPinControls', false);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.data-table-column-settings__pin')).toBeNull();
+  });
+
   it('emits restoreDefaults when the restore button is clicked', () => {
     const fixture = createComponent();
     let emitted = false;

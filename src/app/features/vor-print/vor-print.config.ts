@@ -8,4 +8,5 @@ export const VOR_PRINT_REPORT_CONFIG: ReportConfig = {
   // Search parameters only for now — table columns are pending confirmed source data.
   hasTable: false,
   apiIntegrated: false,
+  reportKey: 'VOR_PRINT',
 };

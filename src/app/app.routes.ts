@@ -72,7 +72,7 @@ export const routes: Routes = [
       import('./shared/ui/report-search-only-page/report-search-only-page.component').then(
         (m) => m.ReportSearchOnlyPageComponent,
       ),
-    data: { title: config.title, description: config.description },
+    data: { title: config.title, description: config.description, reportKey: config.reportKey },
   })),
   // TODO: add remaining top-level routes (dashboard, administration, error routes, etc.)
   // per the approved Routing Architecture Specification.
