@@ -18,16 +18,20 @@
             type="checkbox"
             class="form-check-input"
             [checked]="!column.hidden"
+            [disabled]="column.locked"
             (change)="toggleVisibility.emit(column.key)"
           />
           <span class="form-check-label">{{ column.header }}</span>
+          @if (column.locked) {
+            <i class="data-table-column-settings__lock bi bi-lock-fill" title="Locked in place" aria-label="Locked"></i>
+          }
         </label>
 
         <div class="data-table-column-settings__actions">
           <button
             type="button"
             class="btn btn-sm btn-outline-secondary"
-            [disabled]="isFirst(column.key)"
+            [disabled]="!canMoveUp(column.key)"
             (click)="moveUp.emit(column.key)"
             aria-label="Move column up"
           >
@@ -36,22 +40,25 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-secondary"
-            [disabled]="isLast(column.key)"
+            [disabled]="!canMoveDown(column.key)"
             (click)="moveDown.emit(column.key)"
             aria-label="Move column down"
           >
             ↓
           </button>
-          <select
-            class="data-table-column-settings__pin form-select form-select-sm"
-            [value]="column.pinned ?? ''"
-            (change)="onPinChange(column.key, $event)"
-            aria-label="Pin column"
-          >
-            <option value="">Unpinned</option>
-            <option value="start">Pin left</option>
-            <option value="end">Pin right</option>
-          </select>
+          @if (showPinControls()) {
+            <select
+              class="data-table-column-settings__pin form-select form-select-sm"
+              [value]="column.pinned ?? ''"
+              [disabled]="column.locked"
+              (change)="onPinChange(column.key, $event)"
+              aria-label="Pin column"
+            >
+              <option value="">Unpinned</option>
+              <option value="start">Pin left</option>
+              <option value="end">Pin right</option>
+            </select>
+          }
         </div>
       </li>
     }

@@ -148,6 +148,12 @@ class SelectionTestHostComponent {
   latestSelection: DemoProduct[] = [];
 }
 
+function headerTexts(fixture: { nativeElement: HTMLElement }): string[] {
+  return Array.from(fixture.nativeElement.querySelectorAll('.data-table__table th')).map((th) =>
+    (th.textContent ?? '').replace(/[▲▼]/g, '').trim(),
+  );
+}
+
 describe('DataTableComponent', () => {
   beforeEach(async () => {
     // Some CI/local Node versions expose an experimental native `localStorage` global
@@ -684,7 +690,7 @@ describe('DataTableComponent', () => {
     expect(fixture.nativeElement.querySelector('.data-table__export-error')).toBeFalsy();
   });
 
-  it('reorders a column via Move Up and updates the rendered header order', () => {
+  it('reorders a middle column via Move Up and updates the rendered header order', () => {
     const { fixture } = createHost();
 
     const columnsButton: HTMLButtonElement = fixture.nativeElement.querySelector(
@@ -695,36 +701,101 @@ describe('DataTableComponent', () => {
 
     // DEMO_PRODUCT_COLUMNS order is: name, category, price, stock, status.
     const items = fixture.nativeElement.querySelectorAll('.data-table-column-settings__item');
-    const categoryMoveUp = items[1].querySelector('button[aria-label="Move column up"]') as HTMLButtonElement;
-    categoryMoveUp.click();
+    const stockMoveUp = items[3].querySelector('button[aria-label="Move column up"]') as HTMLButtonElement;
+    stockMoveUp.click();
     fixture.detectChanges();
 
-    const headerTexts = Array.from(fixture.nativeElement.querySelectorAll('.data-table__table th')).map((th) =>
-      (th as HTMLElement).textContent?.trim(),
-    );
-    expect(headerTexts[0]).toContain('Category');
-    expect(headerTexts[1]).toContain('Product Name');
+    expect(headerTexts(fixture)).toEqual(['Product Name', 'Category', 'Stock', 'Price', 'Status']);
   });
 
-  it('pins a column to the start and renders it before unpinned columns', () => {
-    const { fixture } = createHost();
+  describe('locked first/last columns (lock-first-and-last-columns-28-09-2026-01_35_PM.md)', () => {
+    function dragHeader(fixture: ReturnType<typeof createHost>['fixture'], fromHeader: string, toHeader: string): void {
+      const headers: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.data-table__table th'));
+      const find = (text: string) => headers.find((th) => th.textContent?.includes(text))!;
+      const source = find(fromHeader);
+      const target = find(toHeader);
+      // jsdom has no DragEvent/DataTransfer — the handlers only need the event `type`.
+      source.dispatchEvent(new Event('dragstart', { cancelable: true }));
+      target.dispatchEvent(new Event('dragover', { cancelable: true }));
+      target.dispatchEvent(new Event('drop', { cancelable: true }));
+      source.dispatchEvent(new Event('dragend'));
+      fixture.detectChanges();
+    }
 
-    const columnsButton: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.data-table__column-menu button',
-    );
-    columnsButton.click();
-    fixture.detectChanges();
+    function openColumnMenu(fixture: ReturnType<typeof createHost>['fixture']): NodeListOf<HTMLElement> {
+      const columnsButton: HTMLButtonElement = fixture.nativeElement.querySelector('.data-table__column-menu button');
+      columnsButton.click();
+      fixture.detectChanges();
+      return fixture.nativeElement.querySelectorAll('.data-table-column-settings__item');
+    }
 
-    const items = fixture.nativeElement.querySelectorAll('.data-table-column-settings__item');
-    const statusPinSelect = items[4].querySelector('.data-table-column-settings__pin') as HTMLSelectElement;
-    statusPinSelect.value = 'start';
-    statusPinSelect.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
+    it('makes only the middle headers draggable', () => {
+      const { fixture } = createHost();
+      const draggable = Array.from(fixture.nativeElement.querySelectorAll('.data-table__table th')).map(
+        (th) => (th as HTMLElement).getAttribute('draggable'),
+      );
+      // name, category, price, stock, status — first and last locked.
+      expect(draggable).toEqual([null, 'true', 'true', 'true', null]);
+    });
 
-    const headerTexts = Array.from(fixture.nativeElement.querySelectorAll('.data-table__table th')).map((th) =>
-      (th as HTMLElement).textContent?.trim(),
-    );
-    expect(headerTexts[0]).toContain('Status');
+    it('swaps two middle columns when one header is dropped on another (2nd <-> 4th)', () => {
+      const { fixture } = createHost();
+      dragHeader(fixture, 'Category', 'Stock');
+      expect(headerTexts(fixture)).toEqual(['Product Name', 'Stock', 'Price', 'Category', 'Status']);
+    });
+
+    it('ignores drops on, or drags from, a locked column', () => {
+      const { fixture } = createHost();
+      dragHeader(fixture, 'Category', 'Status');
+      dragHeader(fixture, 'Product Name', 'Price');
+      expect(headerTexts(fixture)).toEqual(['Product Name', 'Category', 'Price', 'Stock', 'Status']);
+    });
+
+    it('disables hide, move and pin controls for locked columns in the Columns panel', () => {
+      const { fixture } = createHost();
+      const items = openColumnMenu(fixture);
+
+      const control = (index: number, selector: string) => items[index].querySelector(selector) as HTMLInputElement;
+      expect(control(0, 'input[type="checkbox"]').disabled).toBe(true);
+      expect(control(0, 'button[aria-label="Move column down"]').disabled).toBe(true);
+      expect(control(4, 'input[type="checkbox"]').disabled).toBe(true);
+      expect(control(4, 'button[aria-label="Move column up"]').disabled).toBe(true);
+      expect(items[0].querySelector('.data-table-column-settings__lock')).toBeTruthy();
+
+      // A middle column can't move into a locked slot either.
+      expect(control(1, 'button[aria-label="Move column up"]').disabled).toBe(true);
+      expect(control(3, 'button[aria-label="Move column down"]').disabled).toBe(true);
+      expect(control(2, 'button[aria-label="Move column up"]').disabled).toBe(false);
+
+      expect(fixture.nativeElement.querySelector('.data-table-column-settings__pin')).toBeNull();
+    });
+
+    it('puts locked columns back in place when a saved order had moved them', () => {
+      const backing = new Map<string, string>();
+      backing.set(
+        'data-table:demo-products:columns:v2',
+        JSON.stringify(
+          ['status', 'price', 'name', 'category', 'stock'].map((key) => ({
+            key,
+            hidden: key === 'name',
+            width: null,
+            pinned: key === 'price' ? 'start' : null,
+          })),
+        ),
+      );
+      vi.stubGlobal('localStorage', {
+        getItem: (key: string) => backing.get(key) ?? null,
+        setItem: (key: string, value: string) => backing.set(key, value),
+      } as Partial<Storage>);
+
+      try {
+        const { fixture } = createHost();
+        // Locked name/status back first/last (and visible); middle keeps its saved order.
+        expect(headerTexts(fixture)).toEqual(['Product Name', 'Price', 'Category', 'Stock', 'Status']);
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
   });
 
   it('restores the default column configuration', () => {
@@ -736,14 +807,12 @@ describe('DataTableComponent', () => {
     columnsButton.click();
     fixture.detectChanges();
 
-    const nameCheckbox = fixture.nativeElement.querySelector(
+    const categoryCheckbox = fixture.nativeElement.querySelectorAll(
       '.data-table-column-settings__item input[type="checkbox"]',
-    ) as HTMLInputElement;
-    nameCheckbox.click();
+    )[1] as HTMLInputElement;
+    categoryCheckbox.click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.data-table__scroll-container').textContent).not.toContain(
-      'Product Name',
-    );
+    expect(headerTexts(fixture)).not.toContain('Category');
 
     const restoreButton: HTMLButtonElement = fixture.nativeElement.querySelector(
       '.data-table-column-settings__restore',
@@ -751,9 +820,7 @@ describe('DataTableComponent', () => {
     restoreButton.click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.data-table__scroll-container').textContent).toContain(
-      'Product Name',
-    );
+    expect(headerTexts(fixture)).toContain('Category');
   });
 
   it('filters the column settings list via the search box', () => {

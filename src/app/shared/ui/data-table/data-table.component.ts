@@ -206,37 +206,65 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   private resizeStartWidthPx = 0;
   private resizeCleanup: (() => void) | null = null;
 
+  /** Header currently being dragged, and the header it's hovering over — drives the drag-to-swap UI. */
+  protected readonly draggingColumnKey = signal<string | null>(null);
+  protected readonly dropTargetColumnKey = signal<string | null>(null);
+
   /**
-   * Visible columns, in final render order: pinned-start first, then unpinned (in the
-   * user's chosen order), then pinned-end — with each column's definition merged with its
-   * runtime width. Hidden columns are excluded entirely.
+   * The first and last columns the report shows by default (`columns()` order, skipping
+   * hidden-by-default ones), which stay locked in place; every column in between can be
+   * swapped freely — lock-first-and-last-columns-28-09-2026-01_35_PM.md.
+   */
+  protected readonly lockedColumnKeys = computed<ReadonlySet<string>>(() => {
+    const defaultVisible = this.columns().filter((column) => !column.hidden);
+    const first = defaultVisible[0];
+    const last = defaultVisible[defaultVisible.length - 1];
+    return new Set([first, last].filter((column) => !!column).map((column) => column.key as string));
+  });
+
+  /**
+   * `columnState` with the locked columns forced first/last and visible, and middle columns
+   * unpinned — so a stale save, or any change, can never move a column past a locked one.
+   */
+  private readonly orderedColumnState = computed<TableColumnState[]>(() =>
+    this.enforceLockedColumns(this.columnState()),
+  );
+
+  /**
+   * Visible columns, in final render order: the locked first column, the middle columns in
+   * the user's chosen order, then the locked last column — with each column's definition
+   * merged with its runtime width. Hidden columns are excluded entirely.
    */
   protected readonly visibleColumns = computed<TableColumn<T>[]>(() => {
     const definitionsByKey = new Map(this.columns().map((column) => [column.key, column]));
     const ordered: TableColumn<T>[] = [];
 
-    for (const state of this.columnState()) {
+    for (const state of this.orderedColumnState()) {
       if (state.hidden) continue;
       const definition = definitionsByKey.get(state.key as Extract<keyof T, string>);
       if (!definition) continue;
       ordered.push({ ...definition, width: state.width ?? definition.width, pinned: state.pinned });
     }
 
-    const startPinned = ordered.filter((column) => column.pinned === 'start');
-    const unpinned = ordered.filter((column) => !column.pinned);
-    const endPinned = ordered.filter((column) => column.pinned === 'end');
-    return [...startPinned, ...unpinned, ...endPinned];
+    return ordered;
   });
 
-  /** Feeds the reusable column settings panel — in the user's raw order (pin groups not yet split out). */
+  /** Feeds the reusable column settings panel — in display order, flagging the locked columns. */
   protected readonly columnSettingsItems = computed<ColumnSettingsItem[]>(() => {
     const definitionsByKey = new Map(this.columns().map((column) => [column.key, column]));
+    const lockedKeys = this.lockedColumnKeys();
     const items: ColumnSettingsItem[] = [];
 
-    for (const state of this.columnState()) {
+    for (const state of this.orderedColumnState()) {
       const definition = definitionsByKey.get(state.key as Extract<keyof T, string>);
       if (!definition) continue;
-      items.push({ key: state.key, header: definition.header, hidden: state.hidden, pinned: state.pinned });
+      items.push({
+        key: state.key,
+        header: definition.header,
+        hidden: state.hidden,
+        pinned: state.pinned,
+        locked: lockedKeys.has(state.key),
+      });
     }
 
     return items;
@@ -451,20 +479,77 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   protected onToggleColumnVisibility(key: string): void {
+    if (this.isColumnLocked(key)) return;
     this.columnState.update((state) =>
       state.map((entry) => (entry.key === key ? { ...entry, hidden: !entry.hidden, hiddenIsExplicit: true } : entry)),
     );
   }
 
   protected onMoveColumnUp(key: string): void {
-    this.columnState.update((state) => this.moveEntry(state, key, -1));
+    this.columnState.set(this.moveEntry(this.orderedColumnState(), key, -1));
   }
 
   protected onMoveColumnDown(key: string): void {
-    this.columnState.update((state) => this.moveEntry(state, key, 1));
+    this.columnState.set(this.moveEntry(this.orderedColumnState(), key, 1));
+  }
+
+  protected isColumnLocked(key: string): boolean {
+    return this.lockedColumnKeys().has(key);
+  }
+
+  /** Swaps two middle columns' places (e.g. 2nd ↔ 4th); a no-op if either is locked. */
+  protected swapColumns(sourceKey: string, targetKey: string): void {
+    if (sourceKey === targetKey || this.isColumnLocked(sourceKey) || this.isColumnLocked(targetKey)) return;
+
+    const next = [...this.orderedColumnState()];
+    const sourceIndex = next.findIndex((entry) => entry.key === sourceKey);
+    const targetIndex = next.findIndex((entry) => entry.key === targetKey);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    [next[sourceIndex], next[targetIndex]] = [next[targetIndex], next[sourceIndex]];
+    this.columnState.set(next);
+  }
+
+  protected onHeaderDragStart(event: DragEvent, key: string): void {
+    // Locked headers aren't draggable, and a resize drag must not turn into a column drag.
+    if (this.isColumnLocked(key) || this.resizingKey) {
+      event.preventDefault();
+      return;
+    }
+    this.draggingColumnKey.set(key);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', key);
+    }
+  }
+
+  protected onHeaderDragOver(event: DragEvent, key: string): void {
+    const sourceKey = this.draggingColumnKey();
+    if (!sourceKey || sourceKey === key || this.isColumnLocked(key)) return;
+    // Cancelling dragover is what allows the drop — only middle headers accept one.
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dropTargetColumnKey.set(key);
+  }
+
+  protected onHeaderDragLeave(key: string): void {
+    if (this.dropTargetColumnKey() === key) this.dropTargetColumnKey.set(null);
+  }
+
+  protected onHeaderDrop(event: DragEvent, key: string): void {
+    event.preventDefault();
+    const sourceKey = this.draggingColumnKey();
+    if (sourceKey) this.swapColumns(sourceKey, key);
+    this.onHeaderDragEnd();
+  }
+
+  protected onHeaderDragEnd(): void {
+    this.draggingColumnKey.set(null);
+    this.dropTargetColumnKey.set(null);
   }
 
   protected onPinColumn(event: { key: string; pinned: 'start' | 'end' | null }): void {
+    if (this.isColumnLocked(event.key)) return;
     this.columnState.update((state) =>
       state.map((entry) => (entry.key === event.key ? { ...entry, pinned: event.pinned } : entry)),
     );
@@ -508,7 +593,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   private currentWidthPx(key: string): number {
-    const width = this.columnState().find((entry) => entry.key === key)?.width;
+    const width = this.orderedColumnState().find((entry) => entry.key === key)?.width;
     const parsed = width?.endsWith('px') ? Number.parseFloat(width) : NaN;
     return Number.isNaN(parsed) ? DEFAULT_COLUMN_WIDTH_PX : parsed;
   }
@@ -733,10 +818,35 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     return reconciled;
   }
 
+  /**
+   * Puts the locked columns first/last (visible, keeping any pin their definition gives
+   * them) and unpins every middle column, preserving the middle columns' relative order.
+   */
+  private enforceLockedColumns(state: TableColumnState[]): TableColumnState[] {
+    const lockedKeys = this.lockedColumnKeys();
+    const [firstKey, lastKey] = [...lockedKeys];
+    const byKey = new Map(state.map((entry) => [entry.key, entry]));
+    const definitionsByKey = new Map(this.columns().map((column) => [column.key as string, column]));
+
+    const lockedEntry = (key: string | undefined): TableColumnState[] => {
+      const entry = key ? byKey.get(key) : undefined;
+      if (!entry) return [];
+      return [{ ...entry, hidden: false, pinned: definitionsByKey.get(entry.key)?.pinned ?? null }];
+    };
+
+    const middle = state
+      .filter((entry) => !lockedKeys.has(entry.key))
+      .map((entry) => (entry.pinned ? { ...entry, pinned: null } : entry));
+
+    return [...lockedEntry(firstKey), ...middle, ...lockedEntry(lastKey)];
+  }
+
   private moveEntry(state: TableColumnState[], key: string, delta: number): TableColumnState[] {
     const index = state.findIndex((entry) => entry.key === key);
     const targetIndex = index + delta;
     if (index === -1 || targetIndex < 0 || targetIndex >= state.length) return state;
+    // A locked column never moves, and nothing can move into a locked column's slot.
+    if (this.isColumnLocked(state[index].key) || this.isColumnLocked(state[targetIndex].key)) return state;
 
     const next = [...state];
     [next[index], next[targetIndex]] = [next[targetIndex], next[index]];

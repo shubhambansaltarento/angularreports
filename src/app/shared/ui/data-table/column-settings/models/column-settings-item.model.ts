@@ -8,4 +8,9 @@ export interface ColumnSettingsItem {
   header: string;
   hidden: boolean;
   pinned: 'start' | 'end' | null;
+  /**
+   * Locked in place — can't be moved, hidden or pinned, and nothing can move past it
+   * (the Data Table's first/last columns) — lock-first-and-last-columns-28-09-2026-01_35_PM.md.
+   */
+  locked?: boolean;
 }

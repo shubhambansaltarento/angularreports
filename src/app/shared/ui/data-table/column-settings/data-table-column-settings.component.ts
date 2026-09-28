@@ -18,6 +18,9 @@ export class DataTableColumnSettingsComponent {
   /** Columns in their current display order. */
   readonly columns = input.required<ColumnSettingsItem[]>();
 
+  /** Renders the per-column pin selector — the Data Table turns it off so nothing can jump past its locked columns. */
+  readonly showPinControls = input(true);
+
   readonly toggleVisibility = output<string>();
   readonly moveUp = output<string>();
   readonly moveDown = output<string>();
@@ -42,12 +45,20 @@ export class DataTableColumnSettingsComponent {
     this.pin.emit({ key, pinned: value === 'start' || value === 'end' ? value : null });
   }
 
-  protected isFirst(key: string): boolean {
-    return this.columns()[0]?.key === key;
+  /** False for the first column, a locked column, or one sitting just after a locked column. */
+  protected canMoveUp(key: string): boolean {
+    return this.canMoveBy(key, -1);
   }
 
-  protected isLast(key: string): boolean {
+  /** False for the last column, a locked column, or one sitting just before a locked column. */
+  protected canMoveDown(key: string): boolean {
+    return this.canMoveBy(key, 1);
+  }
+
+  private canMoveBy(key: string, delta: number): boolean {
     const columns = this.columns();
-    return columns[columns.length - 1]?.key === key;
+    const index = columns.findIndex((column) => column.key === key);
+    const neighbour = columns[index + delta];
+    return index !== -1 && !!neighbour && !columns[index].locked && !neighbour.locked;
   }
 }
