@@ -392,3 +392,17 @@
   padding: 0 0.25rem;
   color: #999;
 }
+
+// Drag-to-swap middle column headers; first/last stay locked — lock-first-and-last-columns-28-09-2026-01_35_PM.md.
+.data-table__header-cell--draggable {
+  cursor: grab;
+}
+
+.data-table__header-cell--dragging {
+  opacity: 0.5;
+}
+
+.data-table__header-cell--drop-target {
+  outline: 2px dashed #1f4e8c;
+  outline-offset: -2px;
+}
