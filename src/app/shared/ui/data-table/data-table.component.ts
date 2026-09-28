@@ -32,7 +32,10 @@ import { TableSortState } from './models/table-sort-state.model';
 
 type ExportScope = 'currentPage' | 'all';
 
-const ALL_EXPORT_FORMATS: ExportFormat[] = ['csv', 'excel', 'print', 'pdf'];
+// Excel/PDF only — CSV/Print are still supported by `ExportService` (kept for any future
+// consumer that restores them via `exportFormats`) but are no longer offered by default —
+// export-only-excel-and-pdf-28-09-2026-10_00_AM.md.
+const ALL_EXPORT_FORMATS: ExportFormat[] = ['excel', 'pdf'];
 const EXPORT_FORMAT_LABELS: Record<ExportFormat, string> = {
   csv: 'CSV',
   excel: 'Excel',
@@ -90,6 +93,12 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   /** Options shown in the "Show [N] entries" selector — legacy-sap-bo-style-report-redesign-21-09-2026-01_15_PM.md. */
   readonly pageSizeOptions = input<readonly number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
+
+  /**
+   * Renders the "Show [N] entries" page-size selector. Hidden by default for now, so every
+   * table pages at `initialPageSize` — hide-page-size-selector-28-09-2026-11_00_AM.md.
+   */
+  readonly showPageSizeSelector = input(false);
 
   /**
    * A bold `Total` row rendered in the table's `<tfoot>`, keyed by column key — omitted

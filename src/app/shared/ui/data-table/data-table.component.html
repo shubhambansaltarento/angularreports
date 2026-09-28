@@ -1,15 +1,17 @@
 <div class="data-table">
   <div class="data-table__toolbar">
     <div class="data-table__toolbar-actions">
-      <label class="data-table__page-size">
-        Show
-        <select class="data-table__page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
-          @for (option of pageSizeOptions(); track option) {
-            <option [value]="option">{{ option }}</option>
-          }
-        </select>
-        entries
-      </label>
+      @if (showPageSizeSelector()) {
+        <label class="data-table__page-size">
+          Show
+          <select class="data-table__page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+            @for (option of pageSizeOptions(); track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+          entries
+        </label>
+      }
 
       <input
         class="data-table__search data-table__pill-input form-control form-control-sm"

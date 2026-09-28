@@ -188,6 +188,13 @@ describe('DataTableComponent', () => {
     expect(evenRowBackground).not.toBe('transparent');
   });
 
+  it('hides the "Show [N] entries" page-size selector by default (hide-page-size-selector-28-09-2026-11_00_AM.md)', () => {
+    const { fixture } = createHost();
+    expect(fixture.nativeElement.querySelector('.data-table__page-size')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.data-table__page-size-select')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('entries');
+  });
+
   it('paginates to the next page', () => {
     const { fixture } = createHost();
     const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll(
@@ -580,11 +587,12 @@ describe('DataTableComponent', () => {
     exportButton.click();
     fixture.detectChanges();
 
-    // CSV is already selected by default (first of visibleExportFormats()) — just submit.
+    // Excel is already selected by default (first of visibleExportFormats(), now that CSV/Print
+    // are no longer offered — export-only-excel-and-pdf-28-09-2026-10_00_AM.md) — just submit.
     findButtonByText(fixture.nativeElement, '.data-table__export-submit', 'Export').click();
 
-    expect(exportServiceSpy.exportToCsv).toHaveBeenCalledTimes(1);
-    const [rows, columns] = exportServiceSpy.exportToCsv.mock.calls[0];
+    expect(exportServiceSpy.exportToExcel).toHaveBeenCalledTimes(1);
+    const [rows, columns] = exportServiceSpy.exportToExcel.mock.calls[0];
     expect(columns.some((column: { key: string }) => column.key === 'category')).toBe(false);
     expect(rows.length).toBe(25); // every filtered row by default, not just the current page
   });
@@ -610,7 +618,7 @@ describe('DataTableComponent', () => {
 
     findButtonByText(fixture.nativeElement, '.data-table__export-submit', 'Export').click();
 
-    const [rows] = exportServiceSpy.exportToCsv.mock.calls[0];
+    const [rows] = exportServiceSpy.exportToExcel.mock.calls[0];
     expect(rows.length).toBe(10);
   });
 
